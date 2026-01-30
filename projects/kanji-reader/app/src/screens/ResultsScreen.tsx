@@ -1,22 +1,24 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
   Image,
   ScrollView,
   StyleSheet,
-  SafeAreaView,
   ActivityIndicator,
 } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import BottomSheet from '@gorhom/bottom-sheet';
 import { RootStackParamList } from '../navigation/types';
-import { Button, WordCard } from '../components';
+import { Button, WordCard, DetailPanel } from '../components';
 import { colors } from '../constants/colors';
-import { spacing, borderRadius, shadows } from '../constants/spacing';
+import { spacing, borderRadius } from '../constants/spacing';
 import { fontSizes, fontWeights } from '../constants/typography';
 import { performOCR } from '../services/ocrService';
 import { segmentText, SegmentedWord } from '../services/segmentation';
 import { lookupFirst, DictionaryEntry } from '../services/dictionary';
+import { ttsService } from '../services/tts';
 
 type ResultsScreenRouteProp = RouteProp<RootStackParamList, 'Results'>;
 
@@ -24,6 +26,7 @@ export function ResultsScreen() {
   const navigation = useNavigation();
   const route = useRoute<ResultsScreenRouteProp>();
   const { imageUri } = route.params;
+  const bottomSheetRef = useRef<BottomSheet>(null);
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,6 +58,9 @@ export function ResultsScreen() {
     setSelectedWord(word);
     setDictionaryEntry(null);
     setIsLoadingEntry(true);
+    
+    ttsService.speakJapanese(word.text);
+    
     try {
       const entry = await lookupFirst(word.text);
       setDictionaryEntry(entry);
@@ -65,34 +71,46 @@ export function ResultsScreen() {
     }
   }, []);
 
+  const handlePlayAudio = useCallback(() => {
+    if (selectedWord) {
+      ttsService.speakJapanese(selectedWord.text);
+    }
+  }, [selectedWord]);
+
+  const handleClosePanel = useCallback(() => {
+    setSelectedWord(null);
+    setDictionaryEntry(null);
+  }, []);
+
   const handleScanAgain = useCallback(() => {
+    ttsService.stop();
     navigation.goBack();
   }, [navigation]);
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.loadingText}>Processing image...</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (error) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.centered}>
           <Text style={styles.errorText}>{error}</Text>
           <Button title="Try Again" onPress={handleScanAgain} style={styles.retryButton} />
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <GestureHandlerRootView style={styles.container}>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
         <Image source={{ uri: imageUri }} style={styles.thumbnail} resizeMode="contain" />
 
@@ -114,33 +132,23 @@ export function ResultsScreen() {
             ))}
           </ScrollView>
         </View>
-
-        {selectedWord && (
-          <View style={styles.detailSection}>
-            <Text style={styles.selectedWordText}>{selectedWord.text}</Text>
-            {isLoadingEntry ? (
-              <ActivityIndicator size="small" color={colors.primary} />
-            ) : dictionaryEntry ? (
-              <View>
-                <Text style={styles.reading}>{dictionaryEntry.reading}</Text>
-                <Text style={styles.meanings}>
-                  {dictionaryEntry.meanings.slice(0, 3).join(', ')}
-                </Text>
-                {dictionaryEntry.jlptLevel && (
-                  <Text style={styles.jlpt}>JLPT N{dictionaryEntry.jlptLevel}</Text>
-                )}
-              </View>
-            ) : (
-              <Text style={styles.noEntry}>No dictionary entry found</Text>
-            )}
-          </View>
-        )}
       </ScrollView>
 
       <View style={styles.footer}>
         <Button title="Scan Again" onPress={handleScanAgain} fullWidth />
       </View>
-    </SafeAreaView>
+
+      {selectedWord && (
+        <DetailPanel
+          ref={bottomSheetRef}
+          word={selectedWord}
+          entry={dictionaryEntry}
+          isLoading={isLoadingEntry}
+          onClose={handleClosePanel}
+          onPlayAudio={handlePlayAudio}
+        />
+      )}
+    </GestureHandlerRootView>
   );
 }
 
@@ -154,6 +162,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: spacing.md,
+    paddingBottom: spacing.xl,
   },
   centered: {
     flex: 1,
@@ -197,39 +206,6 @@ const styles = StyleSheet.create({
   },
   wordList: {
     flexDirection: 'row',
-  },
-  detailSection: {
-    marginTop: spacing.lg,
-    padding: spacing.md,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    ...shadows.md,
-  },
-  selectedWordText: {
-    fontSize: fontSizes.japaneseMedium,
-    fontWeight: fontWeights.bold,
-    color: colors.text,
-    marginBottom: spacing.sm,
-  },
-  reading: {
-    fontSize: fontSizes.lg,
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
-  },
-  meanings: {
-    fontSize: fontSizes.base,
-    color: colors.text,
-    marginBottom: spacing.xs,
-  },
-  jlpt: {
-    fontSize: fontSizes.sm,
-    color: colors.primary,
-    fontWeight: fontWeights.medium,
-  },
-  noEntry: {
-    fontSize: fontSizes.base,
-    color: colors.textMuted,
-    fontStyle: 'italic',
   },
   footer: {
     padding: spacing.md,

@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, Image, Alert, ScrollView } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { useNavigation } from '@react-navigation/native';
 import { Button } from '../components/Button';
 import { colors } from '../constants/colors';
 import { spacing, borderRadius } from '../constants/spacing';
 import { fontSizes, fontWeights } from '../constants/typography';
+import type { RootNavigationProp } from '../navigation/types';
 
 export const ImageUploadScreen = () => {
+  const navigation = useNavigation<RootNavigationProp>();
   const [image, setImage] = useState<string | null>(null);
 
   const pickImage = async () => {
-    // Request permissions first
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     
     if (status !== 'granted') {
@@ -21,7 +23,7 @@ export const ImageUploadScreen = () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsEditing: true,
-      quality: 1,
+      quality: 0.8,
     });
 
     if (!result.canceled) {
@@ -31,9 +33,7 @@ export const ImageUploadScreen = () => {
 
   const processImage = () => {
     if (!image) return;
-    console.log('Processing image:', image);
-    Alert.alert('Processing', 'Image processing simulation started...');
-    // Future integration with OCR service
+    navigation.navigate('Results', { imageUri: image });
   };
 
   return (
