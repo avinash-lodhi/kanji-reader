@@ -17,6 +17,7 @@
     "expo": "~54.0.32",
     "expo-camera": "~17.0.10",
     "expo-constants": "~18.0.13",
+    "expo-file-system": "~19.0.21",
     "expo-haptics": "~15.0.8",
     "expo-image-manipulator": "^14.0.8",
     "expo-image-picker": "~17.0.10",
@@ -25,7 +26,8 @@
     "react-native": "0.81.5",
     "react-native-safe-area-context": "^5.6.2",
     "react-native-screens": "^4.20.0",
-    "wanakana": "^5.3.1"
+    "wanakana": "^5.3.1",
+    "zustand": "^5.0.10"
   },
   "devDependencies": {
     "@types/react": "~19.1.0",

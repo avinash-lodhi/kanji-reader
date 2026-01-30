@@ -1,9 +1,9 @@
-import * as FileSystem from 'expo-file-system';
+import { File } from 'expo-file-system';
 
 export interface OCRResult {
   text: string;
-  confidence?: number;
-  boundingBox?: any; // Google Vision API returns vertices, keeping it loose for now or could define strict types
+  confidence: number;
+  boundingBox?: any;
 }
 
 const GOOGLE_CLOUD_VISION_API_URL = 'https://vision.googleapis.com/v1/images:annotate';
@@ -11,15 +11,14 @@ const GOOGLE_CLOUD_VISION_API_URL = 'https://vision.googleapis.com/v1/images:ann
 export const performOCR = async (imageUri: string): Promise<string> => {
   try {
     const apiKey = process.env.EXPO_PUBLIC_GOOGLE_CLOUD_API_KEY;
-    
+
     if (!apiKey) {
-      throw new Error('Google Cloud Vision API key not found in environment variables');
+      throw new Error('Google Cloud Vision API key is missing. Please set EXPO_PUBLIC_GOOGLE_CLOUD_API_KEY.');
     }
 
-    // Convert image to Base64
-    const base64Image = await FileSystem.readAsStringAsync(imageUri, {
-      encoding: 'base64',
-    });
+    // Read the file as Base64 using the new File API
+    const file = new File(imageUri);
+    const base64Image = await file.base64();
 
     const requestBody = {
       requests: [
@@ -30,6 +29,7 @@ export const performOCR = async (imageUri: string): Promise<string> => {
           features: [
             {
               type: 'TEXT_DETECTION',
+              maxResults: 1,
             },
           ],
         },
@@ -45,24 +45,25 @@ export const performOCR = async (imageUri: string): Promise<string> => {
     });
 
     if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`OCR API Error: ${JSON.stringify(errorData)}`);
+      const errorText = await response.text();
+      throw new Error(`Google Cloud Vision API Error: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
     const data = await response.json();
 
-    // Parse the response
-    // Google Vision API returns a list of text annotations. 
-    // The first annotation usually contains the entire text detected.
-    if (data.responses && data.responses.length > 0 && data.responses[0].textAnnotations) {
-      const fullText = data.responses[0].textAnnotations[0].description;
-      return fullText;
-    } else {
-      return ''; // No text detected
+    if (data.responses && data.responses.length > 0) {
+      const resp = data.responses[0];
+      if (resp.fullTextAnnotation) {
+        return resp.fullTextAnnotation.text;
+      }
+      if (resp.textAnnotations && resp.textAnnotations.length > 0) {
+        return resp.textAnnotations[0].description;
+      }
     }
 
+    return '';
   } catch (error) {
-    console.error('Error performing OCR:', error);
+    console.error('performOCR error:', error);
     throw error;
   }
 };
