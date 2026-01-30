@@ -11,7 +11,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { RootStackParamList } from '../navigation/types';
-import { Button, WordCard, DetailPanel } from '../components';
+import { Button, WordCard, DetailPanel, ErrorMessage } from '../components';
 import { colors } from '../constants/colors';
 import { spacing, borderRadius } from '../constants/spacing';
 import { fontSizes, fontWeights } from '../constants/typography';
@@ -98,14 +98,30 @@ export function ResultsScreen() {
     );
   }
 
+  const handleRetry = useCallback(() => {
+    setError(null);
+    setIsLoading(true);
+    performOCR(imageUri)
+      .then((text) => {
+        setRawText(text);
+        setWords(segmentText(text));
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : 'Failed to process image');
+      })
+      .finally(() => setIsLoading(false));
+  }, [imageUri]);
+
   if (error) {
+    const isNetworkError = error.toLowerCase().includes('network');
     return (
-      <View style={styles.container}>
-        <View style={styles.centered}>
-          <Text style={styles.errorText}>{error}</Text>
-          <Button title="Try Again" onPress={handleScanAgain} style={styles.retryButton} />
-        </View>
-      </View>
+      <ErrorMessage
+        title={isNetworkError ? 'Connection Error' : 'Processing Failed'}
+        message={isNetworkError ? 'Please check your internet connection and try again.' : error}
+        icon={isNetworkError ? 'cloud-offline-outline' : 'alert-circle-outline'}
+        onRetry={handleRetry}
+        onGoBack={handleScanAgain}
+      />
     );
   }
 

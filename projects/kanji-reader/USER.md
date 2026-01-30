@@ -2,15 +2,16 @@
 
 *Learn about the person you're helping. Update this as you go.*
 
-- **Name:** 
-- **What to call them:** 
+- **Name:** Avinash Kumar Lodhi
+- **What to call them:** Avinash
 - **Pronouns:** *(optional)*
-- **Timezone:** 
-- **Notes:** 
+- **Timezone:** Asia/Calcutta (GMT+5:30)
+- **Notes:** First met on 2026-01-30 
 
 ## Context
 
-*(What do they care about? What projects are they working on? What annoys them? What makes them laugh? Build this over time.)*
+- Has ADHD and decision paralysis — keep choices minimal, be direct, help cut through the noise
+- Probably benefits from gentle nudges and structure without being rigid
 
 ---
 
