@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/types';
-import { Button } from '../components';
+import { Button, WordCard } from '../components';
 import { colors } from '../constants/colors';
 import { spacing, borderRadius, shadows } from '../constants/spacing';
 import { fontSizes, fontWeights } from '../constants/typography';
@@ -105,7 +105,7 @@ export function ResultsScreen() {
           <Text style={styles.label}>Words: (tap to learn)</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.wordList}>
             {words.map((word, index) => (
-              <WordCardPlaceholder
+              <WordCard
                 key={`${word.text}-${index}`}
                 word={word}
                 isSelected={selectedWord?.text === word.text}
@@ -141,23 +141,6 @@ export function ResultsScreen() {
         <Button title="Scan Again" onPress={handleScanAgain} fullWidth />
       </View>
     </SafeAreaView>
-  );
-}
-
-interface WordCardPlaceholderProps {
-  word: SegmentedWord;
-  isSelected: boolean;
-  onPress: () => void;
-}
-
-function WordCardPlaceholder({ word, isSelected, onPress }: WordCardPlaceholderProps) {
-  return (
-    <View
-      style={[styles.wordCard, isSelected && styles.wordCardSelected]}
-      onTouchEnd={onPress}
-    >
-      <Text style={styles.wordCardText}>{word.text}</Text>
-    </View>
   );
 }
 
@@ -214,23 +197,6 @@ const styles = StyleSheet.create({
   },
   wordList: {
     flexDirection: 'row',
-  },
-  wordCard: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.md,
-    marginRight: spacing.sm,
-    ...shadows.sm,
-  },
-  wordCardSelected: {
-    backgroundColor: colors.primaryLight,
-    borderColor: colors.primary,
-    borderWidth: 2,
-  },
-  wordCardText: {
-    fontSize: fontSizes.japaneseSmall,
-    color: colors.text,
   },
   detailSection: {
     marginTop: spacing.lg,

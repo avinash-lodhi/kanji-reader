@@ -51,7 +51,7 @@ export const colors = {
 export type CharacterTypeColor = typeof colors.kanji | typeof colors.hiragana | typeof colors.katakana | typeof colors.romaji;
 
 // Helper to get color by character type
-export function getCharacterTypeColor(type: 'kanji' | 'hiragana' | 'katakana' | 'romaji' | 'mixed' | 'other'): string {
+export function getCharacterTypeColor(type: string): string {
   switch (type) {
     case 'kanji':
       return colors.kanji;
@@ -62,7 +62,7 @@ export function getCharacterTypeColor(type: 'kanji' | 'hiragana' | 'katakana' | 
     case 'romaji':
       return colors.romaji;
     case 'mixed':
-      return colors.kanji; // Default to kanji for mixed
+      return colors.kanji;
     default:
       return colors.textSecondary;
   }
