@@ -9,3 +9,4 @@ export { Card } from './Card';
 export { Loading } from './Loading';
 export { ErrorBoundary } from './ErrorBoundary';
 export { WordCard } from './WordCard';
+export { DetailPanel } from './DetailPanel';
