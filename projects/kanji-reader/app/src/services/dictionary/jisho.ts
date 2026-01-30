@@ -1,4 +1,5 @@
 import type { DictionaryEntry, JishoEntry, JishoResponse } from './types';
+import { dictionaryCache } from './cache';
 
 const JISHO_API = 'https://jisho.org/api/v1/search/words';
 
@@ -21,6 +22,11 @@ function parseEntry(entry: JishoEntry): DictionaryEntry {
 }
 
 export async function lookupWord(word: string): Promise<DictionaryEntry[]> {
+  const cached = await dictionaryCache.get(word);
+  if (cached) {
+    return cached;
+  }
+
   try {
     const response = await fetch(
       `${JISHO_API}?keyword=${encodeURIComponent(word)}`
@@ -37,7 +43,9 @@ export async function lookupWord(word: string): Promise<DictionaryEntry[]> {
       return [];
     }
 
-    return data.data.map(parseEntry);
+    const entries = data.data.map(parseEntry);
+    await dictionaryCache.set(word, entries);
+    return entries;
   } catch (error) {
     if (error instanceof TypeError && error.message.includes('Network')) {
       throw new Error('Network error: Unable to reach Jisho API');
