@@ -1,26 +1,21 @@
-const GOOGLE_TRANSLATE_API = 'https://translation.googleapis.com/language/translate/v2';
+const MYMEMORY_API = 'https://api.mymemory.translated.net/get';
 
 interface TranslationResult {
   translatedText: string;
   detectedSourceLanguage?: string;
 }
 
-interface GoogleTranslateResponse {
-  data: {
-    translations: Array<{
-      translatedText: string;
-      detectedSourceLanguage?: string;
-    }>;
+interface MyMemoryResponse {
+  responseStatus: number;
+  responseData: {
+    translatedText: string;
+    match: number;
   };
+  quotaFinished?: boolean;
 }
 
 class TranslationService {
-  private apiKey: string | undefined;
   private cache: Map<string, TranslationResult> = new Map();
-
-  constructor() {
-    this.apiKey = process.env.EXPO_PUBLIC_GOOGLE_CLOUD_API_KEY;
-  }
 
   async translateToEnglish(text: string): Promise<TranslationResult | null> {
     if (!text || text.trim().length === 0) {
@@ -33,40 +28,29 @@ class TranslationService {
       return cached;
     }
 
-    if (!this.apiKey) {
-      console.warn('Translation API key not configured');
-      return null;
-    }
-
     try {
-      const response = await fetch(`${GOOGLE_TRANSLATE_API}?key=${this.apiKey}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          q: text,
-          source: 'ja',
-          target: 'en',
-          format: 'text',
-        }),
-      });
+      const url = `${MYMEMORY_API}?q=${encodeURIComponent(text)}&langpair=ja|en`;
+      
+      const response = await fetch(url);
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Translation API error:', response.status, errorText);
+        console.error('Translation API error:', response.status);
         return null;
       }
 
-      const data: GoogleTranslateResponse = await response.json();
+      const data: MyMemoryResponse = await response.json();
       
-      if (!data.data?.translations?.length) {
+      if (data.responseStatus !== 200 || data.quotaFinished) {
+        console.warn('Translation quota exceeded or error:', data.responseStatus);
+        return null;
+      }
+
+      if (!data.responseData?.translatedText) {
         return null;
       }
 
       const result: TranslationResult = {
-        translatedText: data.data.translations[0].translatedText,
-        detectedSourceLanguage: data.data.translations[0].detectedSourceLanguage,
+        translatedText: data.responseData.translatedText,
       };
 
       this.cache.set(cacheKey, result);

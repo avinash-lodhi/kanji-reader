@@ -13,7 +13,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { RootStackParamList } from '../navigation/types';
-import { Button, WordCard, DetailPanel, ErrorMessage, InlineText } from '../components';
+import { Button, DetailPanel, ErrorMessage, InlineText } from '../components';
 import { colors } from '../constants/colors';
 import { spacing, borderRadius } from '../constants/spacing';
 import { fontSizes, fontWeights } from '../constants/typography';
@@ -41,6 +41,7 @@ export function ResultsScreen() {
   const [isPlayingFullText, setIsPlayingFullText] = useState(false);
   const [englishTranslation, setEnglishTranslation] = useState<string | null>(null);
   const [isTranslating, setIsTranslating] = useState(false);
+  const [wordReadings, setWordReadings] = useState<Map<string, string>>(new Map());
 
   useEffect(() => {
     async function processImage() {
@@ -80,6 +81,34 @@ export function ResultsScreen() {
     }
     translateText();
   }, [rawText]);
+
+  useEffect(() => {
+    async function fetchKanjiReadings() {
+      const kanjiWords = words.filter(w => w.type === 'kanji');
+      if (kanjiWords.length === 0) return;
+
+      const uniqueKanjiWords = [...new Set(kanjiWords.map(w => w.text))];
+      const newReadings = new Map<string, string>();
+
+      await Promise.all(
+        uniqueKanjiWords.map(async (word) => {
+          try {
+            const entry = await lookupFirst(word);
+            if (entry?.reading) {
+              newReadings.set(word, entry.reading);
+            }
+          } catch {
+            // Ignore lookup failures
+          }
+        })
+      );
+
+      if (newReadings.size > 0) {
+        setWordReadings(prev => new Map([...prev, ...newReadings]));
+      }
+    }
+    fetchKanjiReadings();
+  }, [words]);
 
   const handleWordPress = useCallback(async (word: SegmentedWord) => {
     setSelectedWord(word);
@@ -192,6 +221,7 @@ export function ResultsScreen() {
               onWordPress={handleWordPress}
               selectedWord={selectedWord}
               showPronunciation={true}
+              wordReadings={wordReadings}
             />
           ) : (
             <Text style={styles.fullText}>{rawText || '(No text detected)'}</Text>
@@ -210,20 +240,6 @@ export function ResultsScreen() {
           ) : rawText ? (
             <Text style={styles.translationUnavailable}>Translation unavailable</Text>
           ) : null}
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.label}>Word cards: (tap to learn)</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.wordList}>
-            {words.map((word, index) => (
-              <WordCard
-                key={`${word.text}-${index}`}
-                word={word}
-                isSelected={selectedWord?.text === word.text}
-                onPress={() => handleWordPress(word)}
-              />
-            ))}
-          </ScrollView>
         </View>
       </ScrollView>
 
@@ -333,9 +349,6 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.sm,
     color: colors.textMuted,
     fontStyle: 'italic',
-  },
-  wordList: {
-    flexDirection: 'row',
   },
   footer: {
     padding: spacing.md,

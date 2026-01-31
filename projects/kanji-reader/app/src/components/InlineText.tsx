@@ -11,13 +11,15 @@ interface InlineTextProps {
   onWordPress?: (word: SegmentedWord) => void;
   selectedWord?: SegmentedWord | null;
   showPronunciation?: boolean;
+  wordReadings?: Map<string, string>;
 }
 
 export function InlineText({ 
   words, 
   onWordPress, 
   selectedWord,
-  showPronunciation = true 
+  showPronunciation = true,
+  wordReadings,
 }: InlineTextProps) {
   const handleWordPress = async (word: SegmentedWord) => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -30,6 +32,10 @@ export function InlineText({
         const isSelected = selectedWord?.text === word.text && 
                           selectedWord?.startIndex === word.startIndex;
         
+        const isKanjiWord = word.type === 'kanji';
+        const reading = wordReadings?.get(word.text);
+        const shouldShowPronunciation = showPronunciation && isKanjiWord && reading;
+        
         return (
           <Pressable
             key={`${word.text}-${word.startIndex}-${index}`}
@@ -40,11 +46,11 @@ export function InlineText({
               pressed && styles.pressedWord,
             ]}
             accessibilityRole="button"
-            accessibilityLabel={`${word.text}${word.romaji ? `, pronounced ${word.romaji}` : ''}`}
+            accessibilityLabel={`${word.text}${reading ? `, pronounced ${reading}` : ''}`}
           >
-            {showPronunciation && word.romaji && (
+            {shouldShowPronunciation && (
               <Text style={[styles.pronunciation, isSelected && styles.selectedPronunciation]}>
-                {word.romaji}
+                {reading}
               </Text>
             )}
             <Text style={[styles.word, isSelected && styles.selectedWordText]}>
