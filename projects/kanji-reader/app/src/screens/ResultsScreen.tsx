@@ -239,6 +239,7 @@ export function ResultsScreen() {
           isLoading={isLoadingEntry}
           onClose={handleClosePanel}
           onPlayAudio={handlePlayAudio}
+          sentenceContext={rawText}
         />
       )}
     </GestureHandlerRootView>

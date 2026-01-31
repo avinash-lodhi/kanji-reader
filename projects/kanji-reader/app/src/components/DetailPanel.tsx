@@ -15,10 +15,11 @@ interface DetailPanelProps {
   isLoading: boolean;
   onClose: () => void;
   onPlayAudio: () => void;
+  sentenceContext?: string;
 }
 
 export const DetailPanel = forwardRef<BottomSheet, DetailPanelProps>(
-  ({ word, entry, isLoading, onClose, onPlayAudio }, ref) => {
+  ({ word, entry, isLoading, onClose, onPlayAudio, sentenceContext }, ref) => {
     const snapPoints = useMemo(() => ['45%'], []);
 
     const handlePlayAudio = async () => {
@@ -91,6 +92,22 @@ export const DetailPanel = forwardRef<BottomSheet, DetailPanelProps>(
                   <Text style={styles.sectionLabel}>Parts of Speech:</Text>
                   <Text style={styles.partsOfSpeech}>
                     {entry.partsOfSpeech.slice(0, 3).join(', ')}
+                  </Text>
+                </View>
+              )}
+
+              {sentenceContext && (
+                <View style={styles.section}>
+                  <Text style={styles.sectionLabel}>In context:</Text>
+                  <Text style={styles.contextText}>
+                    {sentenceContext.split(word.text).map((part, index, arr) => (
+                      <Text key={index}>
+                        {part}
+                        {index < arr.length - 1 && (
+                          <Text style={styles.highlightedWord}>{word.text}</Text>
+                        )}
+                      </Text>
+                    ))}
                   </Text>
                 </View>
               )}
@@ -191,6 +208,18 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.sm,
     color: colors.textSecondary,
     fontStyle: 'italic',
+  },
+  contextText: {
+    fontSize: fontSizes.sm,
+    color: colors.textSecondary,
+    lineHeight: fontSizes.sm * 1.6,
+    backgroundColor: colors.surface,
+    padding: spacing.sm,
+    borderRadius: borderRadius.sm,
+  },
+  highlightedWord: {
+    color: colors.primary,
+    fontWeight: fontWeights.bold,
   },
   badges: {
     flexDirection: 'row',
