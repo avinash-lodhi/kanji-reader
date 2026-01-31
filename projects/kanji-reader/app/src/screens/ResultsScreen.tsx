@@ -21,6 +21,7 @@ import { performOCR } from '../services/ocrService';
 import { segmentText, SegmentedWord } from '../services/segmentation';
 import { lookupFirst, DictionaryEntry } from '../services/dictionary';
 import { ttsService } from '../services/tts';
+import { translationService } from '../services/translation';
 
 type ResultsScreenRouteProp = RouteProp<RootStackParamList, 'Results'>;
 
@@ -38,6 +39,8 @@ export function ResultsScreen() {
   const [dictionaryEntry, setDictionaryEntry] = useState<DictionaryEntry | null>(null);
   const [isLoadingEntry, setIsLoadingEntry] = useState(false);
   const [isPlayingFullText, setIsPlayingFullText] = useState(false);
+  const [englishTranslation, setEnglishTranslation] = useState<string | null>(null);
+  const [isTranslating, setIsTranslating] = useState(false);
 
   useEffect(() => {
     async function processImage() {
@@ -56,6 +59,27 @@ export function ResultsScreen() {
     }
     processImage();
   }, [imageUri]);
+
+  useEffect(() => {
+    async function translateText() {
+      if (!rawText || rawText.trim().length === 0) {
+        setEnglishTranslation(null);
+        return;
+      }
+      
+      setIsTranslating(true);
+      try {
+        const result = await translationService.translateToEnglish(rawText);
+        setEnglishTranslation(result?.translatedText ?? null);
+      } catch (err) {
+        console.warn('Translation failed:', err);
+        setEnglishTranslation(null);
+      } finally {
+        setIsTranslating(false);
+      }
+    }
+    translateText();
+  }, [rawText]);
 
   const handleWordPress = useCallback(async (word: SegmentedWord) => {
     setSelectedWord(word);
@@ -175,6 +199,20 @@ export function ResultsScreen() {
         </View>
 
         <View style={styles.section}>
+          <Text style={styles.label}>English Translation:</Text>
+          {isTranslating ? (
+            <View style={styles.translationLoading}>
+              <ActivityIndicator size="small" color={colors.primary} />
+              <Text style={styles.translationLoadingText}>Translating...</Text>
+            </View>
+          ) : englishTranslation ? (
+            <Text style={styles.translationText}>{englishTranslation}</Text>
+          ) : rawText ? (
+            <Text style={styles.translationUnavailable}>Translation unavailable</Text>
+          ) : null}
+        </View>
+
+        <View style={styles.section}>
           <Text style={styles.label}>Word cards: (tap to learn)</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.wordList}>
             {words.map((word, index) => (
@@ -270,6 +308,30 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.lg,
     color: colors.text,
     lineHeight: fontSizes.lg * 1.8,
+  },
+  translationLoading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+  },
+  translationLoadingText: {
+    marginLeft: spacing.sm,
+    fontSize: fontSizes.sm,
+    color: colors.textMuted,
+  },
+  translationText: {
+    fontSize: fontSizes.base,
+    color: colors.text,
+    lineHeight: fontSizes.base * 1.6,
+    fontStyle: 'italic',
+    backgroundColor: colors.surface,
+    padding: spacing.sm,
+    borderRadius: borderRadius.md,
+  },
+  translationUnavailable: {
+    fontSize: fontSizes.sm,
+    color: colors.textMuted,
+    fontStyle: 'italic',
   },
   wordList: {
     flexDirection: 'row',
