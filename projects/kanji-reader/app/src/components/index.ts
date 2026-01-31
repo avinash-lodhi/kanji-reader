@@ -11,3 +11,4 @@ export { ErrorBoundary } from './ErrorBoundary';
 export { ErrorMessage } from './ErrorMessage';
 export { WordCard } from './WordCard';
 export { DetailPanel } from './DetailPanel';
+export { InlineText } from './InlineText';

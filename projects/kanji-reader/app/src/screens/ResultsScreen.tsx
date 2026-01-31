@@ -11,7 +11,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { RootStackParamList } from '../navigation/types';
-import { Button, WordCard, DetailPanel, ErrorMessage } from '../components';
+import { Button, WordCard, DetailPanel, ErrorMessage, InlineText } from '../components';
 import { colors } from '../constants/colors';
 import { spacing, borderRadius } from '../constants/spacing';
 import { fontSizes, fontWeights } from '../constants/typography';
@@ -131,12 +131,21 @@ export function ResultsScreen() {
         <Image source={{ uri: imageUri }} style={styles.thumbnail} resizeMode="contain" />
 
         <View style={styles.section}>
-          <Text style={styles.label}>Full text:</Text>
-          <Text style={styles.fullText}>{rawText || '(No text detected)'}</Text>
+          <Text style={styles.label}>Full text with pronunciation:</Text>
+          {words.length > 0 ? (
+            <InlineText
+              words={words}
+              onWordPress={handleWordPress}
+              selectedWord={selectedWord}
+              showPronunciation={true}
+            />
+          ) : (
+            <Text style={styles.fullText}>{rawText || '(No text detected)'}</Text>
+          )}
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.label}>Words: (tap to learn)</Text>
+          <Text style={styles.label}>Word cards: (tap to learn)</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.wordList}>
             {words.map((word, index) => (
               <WordCard
