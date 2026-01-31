@@ -3,7 +3,7 @@ import { File } from 'expo-file-system';
 export interface OCRResult {
   text: string;
   confidence: number;
-  boundingBox?: any;
+  boundingBox?: { x: number; y: number; width: number; height: number };
 }
 
 const GOOGLE_CLOUD_VISION_API_URL = 'https://vision.googleapis.com/v1/images:annotate';

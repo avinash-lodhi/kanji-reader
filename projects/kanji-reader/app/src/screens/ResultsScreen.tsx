@@ -87,17 +87,6 @@ export function ResultsScreen() {
     navigation.goBack();
   }, [navigation]);
 
-  if (isLoading) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Processing image...</Text>
-        </View>
-      </View>
-    );
-  }
-
   const handleRetry = useCallback(() => {
     setError(null);
     setIsLoading(true);
@@ -111,6 +100,17 @@ export function ResultsScreen() {
       })
       .finally(() => setIsLoading(false));
   }, [imageUri]);
+
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Processing image...</Text>
+        </View>
+      </View>
+    );
+  }
 
   if (error) {
     const isNetworkError = error.toLowerCase().includes('network');

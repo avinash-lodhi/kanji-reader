@@ -44,7 +44,7 @@ export function Button({
   textStyle,
   ...props
 }: ButtonProps) {
-  const handlePress = async (event: any) => {
+  const handlePress = async (event: Parameters<NonNullable<typeof onPress>>[0]) => {
     // Haptic feedback
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onPress?.(event);

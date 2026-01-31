@@ -7,7 +7,7 @@
  * - Shimmer: Skeleton placeholder for content
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   View,
   ActivityIndicator,
@@ -56,7 +56,7 @@ export function Loading({
 
 // Shimmer/Skeleton component
 function Shimmer() {
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
+  const shimmerAnim = useMemo(() => new Animated.Value(0), []);
 
   useEffect(() => {
     Animated.loop(

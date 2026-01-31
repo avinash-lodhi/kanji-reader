@@ -7,7 +7,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { StyleSheet } from 'react-native';
+
 
 import { RootStackParamList } from './types';
 import { MainTabs } from './MainTabs';
@@ -46,8 +46,6 @@ export function Navigation() {
     </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({});
 
 export default Navigation;
 export * from './types';

@@ -32,7 +32,7 @@ export function Card({
   onPress,
   disabled = false,
 }: CardProps) {
-  const handlePress = async (event: any) => {
+  const handlePress = async (event: Parameters<NonNullable<typeof onPress>>[0]) => {
     if (onPress) {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       onPress(event);

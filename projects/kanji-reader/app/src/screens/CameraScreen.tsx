@@ -58,32 +58,32 @@ export default function CameraScreen() {
 
   return (
     <View style={styles.container}>
-      <CameraView ref={cameraRef} style={styles.camera} facing={facing}>
-        <View style={styles.overlay}>
-          <View style={styles.scanFrame} />
-          <Text style={styles.hint}>Position Japanese text in the frame</Text>
-        </View>
+      <CameraView ref={cameraRef} style={styles.camera} facing={facing} />
+      
+      <View style={styles.overlay}>
+        <View style={styles.scanFrame} />
+        <Text style={styles.hint}>Position Japanese text in the frame</Text>
+      </View>
+      
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.flipButton} onPress={toggleCameraFacing}>
+          <Ionicons name="camera-reverse" size={28} color="white" />
+        </TouchableOpacity>
         
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.flipButton} onPress={toggleCameraFacing}>
-            <Ionicons name="camera-reverse" size={28} color="white" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[styles.shutterButton, isCapturing && styles.shutterButtonDisabled]} 
-            onPress={handleCapture}
-            disabled={isCapturing}
-          >
-            {isCapturing ? (
-              <ActivityIndicator color={colors.primary} size="large" />
-            ) : (
-              <View style={styles.shutterInner} />
-            )}
-          </TouchableOpacity>
-          
-          <View style={styles.spacer} />
-        </View>
-      </CameraView>
+        <TouchableOpacity 
+          style={[styles.shutterButton, isCapturing && styles.shutterButtonDisabled]} 
+          onPress={handleCapture}
+          disabled={isCapturing}
+        >
+          {isCapturing ? (
+            <ActivityIndicator color={colors.primary} size="large" />
+          ) : (
+            <View style={styles.shutterInner} />
+          )}
+        </TouchableOpacity>
+        
+        <View style={styles.spacer} />
+      </View>
     </View>
   );
 }
@@ -128,7 +128,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   buttonContainer: {
-    flex: 1,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
     backgroundColor: 'transparent',
     paddingHorizontal: 32,

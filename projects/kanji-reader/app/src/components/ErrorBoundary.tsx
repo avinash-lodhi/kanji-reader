@@ -8,7 +8,7 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { colors } from '../constants/colors';
-import { spacing, borderRadius } from '../constants/spacing';
+import { spacing } from '../constants/spacing';
 import { fontSizes, fontWeights } from '../constants/typography';
 import { Button } from './Button';
 

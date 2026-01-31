@@ -11,28 +11,8 @@ import { MainTabsParamList } from './types';
 import { colors } from '../constants/colors';
 import { fontSizes } from '../constants/typography';
 
-// Placeholder screens (will be replaced with actual screens)
-import { View, Text, StyleSheet } from 'react-native';
-
-function CameraScreen() {
-  return (
-    <View style={styles.placeholder}>
-      <Ionicons name="camera" size={64} color={colors.primary} />
-      <Text style={styles.placeholderText}>Camera Screen</Text>
-      <Text style={styles.placeholderSubtext}>Coming soon...</Text>
-    </View>
-  );
-}
-
-function UploadScreen() {
-  return (
-    <View style={styles.placeholder}>
-      <Ionicons name="image" size={64} color={colors.primary} />
-      <Text style={styles.placeholderText}>Upload Screen</Text>
-      <Text style={styles.placeholderSubtext}>Coming soon...</Text>
-    </View>
-  );
-}
+import CameraScreen from '../screens/CameraScreen';
+import { ImageUploadScreen } from '../screens/ImageUploadScreen';
 
 const Tab = createBottomTabNavigator<MainTabsParamList>();
 
@@ -64,7 +44,7 @@ export function MainTabs() {
       />
       <Tab.Screen
         name="Upload"
-        component={UploadScreen}
+        component={ImageUploadScreen}
         options={{
           tabBarLabel: 'Upload',
           tabBarIcon: ({ color, size }) => (
@@ -75,24 +55,5 @@ export function MainTabs() {
     </Tab.Navigator>
   );
 }
-
-const styles = StyleSheet.create({
-  placeholder: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colors.background,
-  },
-  placeholderText: {
-    fontSize: fontSizes.xl,
-    color: colors.text,
-    marginTop: 16,
-  },
-  placeholderSubtext: {
-    fontSize: fontSizes.base,
-    color: colors.textSecondary,
-    marginTop: 8,
-  },
-});
 
 export default MainTabs;

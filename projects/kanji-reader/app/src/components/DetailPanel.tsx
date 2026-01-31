@@ -4,7 +4,7 @@ import BottomSheet, { BottomSheetView, BottomSheetBackdrop } from '@gorhom/botto
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { colors } from '../constants/colors';
-import { spacing, borderRadius, shadows } from '../constants/spacing';
+import { spacing, borderRadius } from '../constants/spacing';
 import { fontSizes, fontWeights } from '../constants/typography';
 import type { SegmentedWord } from '../services/segmentation';
 import type { DictionaryEntry } from '../services/dictionary';
@@ -27,7 +27,7 @@ export const DetailPanel = forwardRef<BottomSheet, DetailPanelProps>(
     };
 
     const renderBackdrop = useCallback(
-      (props: any) => (
+      (props: React.ComponentProps<typeof BottomSheetBackdrop>) => (
         <BottomSheetBackdrop
           {...props}
           disappearsOnIndex={-1}
