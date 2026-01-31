@@ -6,7 +6,9 @@ import {
   ScrollView,
   StyleSheet,
   ActivityIndicator,
+  Pressable,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import BottomSheet from '@gorhom/bottom-sheet';
@@ -35,6 +37,7 @@ export function ResultsScreen() {
   const [selectedWord, setSelectedWord] = useState<SegmentedWord | null>(null);
   const [dictionaryEntry, setDictionaryEntry] = useState<DictionaryEntry | null>(null);
   const [isLoadingEntry, setIsLoadingEntry] = useState(false);
+  const [isPlayingFullText, setIsPlayingFullText] = useState(false);
 
   useEffect(() => {
     async function processImage() {
@@ -76,6 +79,17 @@ export function ResultsScreen() {
       ttsService.speakJapanese(selectedWord.text);
     }
   }, [selectedWord]);
+
+  const handlePlayFullText = useCallback(async () => {
+    if (!rawText || isPlayingFullText) return;
+    
+    setIsPlayingFullText(true);
+    try {
+      await ttsService.speakJapanese(rawText, 0.9);
+    } finally {
+      setIsPlayingFullText(false);
+    }
+  }, [rawText, isPlayingFullText]);
 
   const handleClosePanel = useCallback(() => {
     setSelectedWord(null);
@@ -131,7 +145,23 @@ export function ResultsScreen() {
         <Image source={{ uri: imageUri }} style={styles.thumbnail} resizeMode="contain" />
 
         <View style={styles.section}>
-          <Text style={styles.label}>Full text with pronunciation:</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.label}>Full text with pronunciation:</Text>
+            {rawText && (
+              <Pressable
+                onPress={handlePlayFullText}
+                style={[styles.speakerButton, isPlayingFullText && styles.speakerButtonActive]}
+                accessibilityRole="button"
+                accessibilityLabel="Play full sentence audio"
+              >
+                <Ionicons 
+                  name={isPlayingFullText ? 'volume-high' : 'volume-medium'} 
+                  size={24} 
+                  color={isPlayingFullText ? colors.primary : colors.textSecondary} 
+                />
+              </Pressable>
+            )}
+          </View>
           {words.length > 0 ? (
             <InlineText
               words={words}
@@ -218,11 +248,23 @@ const styles = StyleSheet.create({
   section: {
     marginTop: spacing.lg,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  speakerButton: {
+    padding: spacing.xs,
+    borderRadius: borderRadius.md,
+  },
+  speakerButtonActive: {
+    backgroundColor: colors.primaryLight + '30',
+  },
   label: {
     fontSize: fontSizes.sm,
     fontWeight: fontWeights.medium,
     color: colors.textSecondary,
-    marginBottom: spacing.sm,
   },
   fullText: {
     fontSize: fontSizes.lg,
