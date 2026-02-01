@@ -11,19 +11,20 @@ import type { KuromojiToken, KuromojiState, KuromojiTokenizer } from './types';
 
 export type { KuromojiToken, KuromojiState } from './types';
 
+// Keys must match what DictionaryLoader expects (.dat.gz suffixes)
 const DICT_FILES = [
-  'base.dat',
-  'check.dat',
-  'tid.dat',
-  'tid_pos.dat',
-  'tid_map.dat',
-  'cc.dat',
-  'unk.dat',
-  'unk_pos.dat',
-  'unk_map.dat',
-  'unk_char.dat',
-  'unk_compat.dat',
-  'unk_invoke.dat',
+  'base.dat.gz',
+  'check.dat.gz',
+  'tid.dat.gz',
+  'tid_pos.dat.gz',
+  'tid_map.dat.gz',
+  'cc.dat.gz',
+  'unk.dat.gz',
+  'unk_pos.dat.gz',
+  'unk_map.dat.gz',
+  'unk_char.dat.gz',
+  'unk_compat.dat.gz',
+  'unk_invoke.dat.gz',
 ] as const;
 
 class KuromojiService {
@@ -77,20 +78,21 @@ class KuromojiService {
   }
 
   private async loadDictionaryAssets(): Promise<Record<string, Asset>> {
+    // Map .dat.gz keys to decompressed .dat asset files
     /* eslint-disable @typescript-eslint/no-require-imports */
     const assetModules: Record<string, number> = {
-      'base.dat': require('../../../assets/kuromoji-dict/base.dat'),
-      'check.dat': require('../../../assets/kuromoji-dict/check.dat'),
-      'tid.dat': require('../../../assets/kuromoji-dict/tid.dat'),
-      'tid_pos.dat': require('../../../assets/kuromoji-dict/tid_pos.dat'),
-      'tid_map.dat': require('../../../assets/kuromoji-dict/tid_map.dat'),
-      'cc.dat': require('../../../assets/kuromoji-dict/cc.dat'),
-      'unk.dat': require('../../../assets/kuromoji-dict/unk.dat'),
-      'unk_pos.dat': require('../../../assets/kuromoji-dict/unk_pos.dat'),
-      'unk_map.dat': require('../../../assets/kuromoji-dict/unk_map.dat'),
-      'unk_char.dat': require('../../../assets/kuromoji-dict/unk_char.dat'),
-      'unk_compat.dat': require('../../../assets/kuromoji-dict/unk_compat.dat'),
-      'unk_invoke.dat': require('../../../assets/kuromoji-dict/unk_invoke.dat'),
+      'base.dat.gz': require('../../../assets/kuromoji-dict/base.dat'),
+      'check.dat.gz': require('../../../assets/kuromoji-dict/check.dat'),
+      'tid.dat.gz': require('../../../assets/kuromoji-dict/tid.dat'),
+      'tid_pos.dat.gz': require('../../../assets/kuromoji-dict/tid_pos.dat'),
+      'tid_map.dat.gz': require('../../../assets/kuromoji-dict/tid_map.dat'),
+      'cc.dat.gz': require('../../../assets/kuromoji-dict/cc.dat'),
+      'unk.dat.gz': require('../../../assets/kuromoji-dict/unk.dat'),
+      'unk_pos.dat.gz': require('../../../assets/kuromoji-dict/unk_pos.dat'),
+      'unk_map.dat.gz': require('../../../assets/kuromoji-dict/unk_map.dat'),
+      'unk_char.dat.gz': require('../../../assets/kuromoji-dict/unk_char.dat'),
+      'unk_compat.dat.gz': require('../../../assets/kuromoji-dict/unk_compat.dat'),
+      'unk_invoke.dat.gz': require('../../../assets/kuromoji-dict/unk_invoke.dat'),
     };
     /* eslint-enable @typescript-eslint/no-require-imports */
 
