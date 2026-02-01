@@ -94,10 +94,10 @@ export function ResultsScreen() {
 
       const newReadings = new Map<string, string>();
 
-      // Fetch readings for kanji words only (skip hiragana/katakana)
-      const kanjiWords = words.filter(w => w.type === 'kanji');
+      // Fetch readings for kanji words that don't already have a reading from segmentation
+      const kanjiWordsNeedingLookup = words.filter(w => w.type === 'kanji' && !w.reading);
       await Promise.all(
-        kanjiWords.map(async (word) => {
+        kanjiWordsNeedingLookup.map(async (word) => {
           try {
             const entry = await lookupFirst(word.text);
             // Only use reading if it's an exact match for the word

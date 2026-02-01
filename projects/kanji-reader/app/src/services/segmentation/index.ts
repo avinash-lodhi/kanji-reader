@@ -1,15 +1,17 @@
 /**
  * Word Segmentation Service
  * 
- * Splits continuous Japanese text into words using Budoux.
+ * Splits continuous Japanese text into words using Kuromoji (primary) with Budoux fallback.
  * Critical for dictionary lookup - Japanese has no spaces.
  */
 
 import { loadDefaultJapaneseParser } from 'budoux';
+import { toHiragana } from 'wanakana';
 import { detectWordType, CharacterType } from '../../utils/characterType';
 import { toRomaji } from '../../utils/romaji';
+import { kuromojiService } from '../kuromoji';
 
-// Initialize the parser
+// Initialize the Budoux parser (fallback)
 const parser = loadDefaultJapaneseParser();
 
 /**
@@ -22,6 +24,8 @@ export interface SegmentedWord {
   type: CharacterType;
   /** Romaji if available (only for pure kana) */
   romaji?: string;
+  /** Hiragana reading from Kuromoji (if available) */
+  reading?: string;
   /** Original position in source text */
   startIndex: number;
   /** End position in source text */
@@ -29,41 +33,81 @@ export interface SegmentedWord {
 }
 
 /**
- * Segment Japanese text into words
+ * Segment text using Kuromoji tokenizer
  */
-export function segmentText(text: string): SegmentedWord[] {
-  if (!text || text.trim().length === 0) {
-    return [];
+function segmentWithKuromoji(text: string): SegmentedWord[] {
+  const tokens = kuromojiService.tokenize(text);
+  const words: SegmentedWord[] = [];
+
+  for (const token of tokens) {
+    // Skip punctuation tokens
+    if (token.pos.startsWith('記号')) {
+      continue;
+    }
+
+    const type = detectWordType(token.surface_form);
+    
+    // Skip if detected as punctuation or other
+    if (type === 'punctuation' || type === 'other') {
+      continue;
+    }
+
+    // Calculate romaji for pure kana words
+    let romaji: string | undefined;
+    if (type === 'hiragana' || type === 'katakana') {
+      romaji = toRomaji(token.surface_form);
+    }
+
+    // Convert katakana reading to hiragana
+    const reading = token.reading ? toHiragana(token.reading) : undefined;
+
+    // word_position is 1-indexed in Kuromoji
+    const startIndex = token.word_position - 1;
+    const endIndex = startIndex + token.surface_form.length;
+
+    words.push({
+      text: token.surface_form,
+      type,
+      romaji,
+      reading,
+      startIndex,
+      endIndex,
+    });
   }
-  
-  // Use Budoux to segment
+
+  return words;
+}
+
+/**
+ * Segment text using Budoux parser (fallback)
+ */
+function segmentWithBudoux(text: string): SegmentedWord[] {
   const segments = parser.parse(text);
-  
   const words: SegmentedWord[] = [];
   let currentIndex = 0;
-  
+
   for (const segment of segments) {
     const trimmed = segment.trim();
-    
+
     // Skip empty segments and pure whitespace
     if (!trimmed) {
       currentIndex += segment.length;
       continue;
     }
-    
+
     // Skip pure punctuation
     const type = detectWordType(trimmed);
     if (type === 'punctuation' || type === 'other') {
       currentIndex += segment.length;
       continue;
     }
-    
+
     // Calculate romaji for pure kana words
     let romaji: string | undefined;
     if (type === 'hiragana' || type === 'katakana') {
       romaji = toRomaji(trimmed);
     }
-    
+
     words.push({
       text: trimmed,
       type,
@@ -71,11 +115,28 @@ export function segmentText(text: string): SegmentedWord[] {
       startIndex: currentIndex,
       endIndex: currentIndex + segment.length,
     });
-    
+
     currentIndex += segment.length;
   }
-  
+
   return words;
+}
+
+/**
+ * Segment Japanese text into words
+ * Uses Kuromoji when available, falls back to Budoux
+ */
+export function segmentText(text: string): SegmentedWord[] {
+  if (!text || text.trim().length === 0) {
+    return [];
+  }
+
+  // Use Kuromoji if ready, otherwise fall back to Budoux
+  if (kuromojiService.isReady()) {
+    return segmentWithKuromoji(text);
+  }
+
+  return segmentWithBudoux(text);
 }
 
 /**
