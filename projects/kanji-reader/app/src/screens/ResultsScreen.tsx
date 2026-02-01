@@ -42,7 +42,7 @@ export function ResultsScreen() {
   const [englishTranslation, setEnglishTranslation] = useState<string | null>(null);
   const [isTranslating, setIsTranslating] = useState(false);
   const [wordReadings, setWordReadings] = useState<Map<string, string>>(new Map());
-  const [pronunciationVisible, setPronunciationVisible] = useState(true);
+  const [pronunciationVisible, setPronunciationVisible] = useState(false);
 
   useEffect(() => {
     async function processImage() {
@@ -84,25 +84,24 @@ export function ResultsScreen() {
   }, [rawText]);
 
   useEffect(() => {
+    let cancelled = false;
+    
     async function fetchReadings() {
-      if (words.length === 0) return;
+      if (words.length === 0) {
+        setWordReadings(new Map());
+        return;
+      }
 
       const newReadings = new Map<string, string>();
 
-      // Add romaji for hiragana/katakana words immediately
-      words.forEach(w => {
-        if ((w.type === 'hiragana' || w.type === 'katakana') && w.romaji) {
-          newReadings.set(`${w.text}-${w.startIndex}`, w.romaji);
-        }
-      });
-
-      // Fetch readings for kanji words
+      // Fetch readings for kanji words only (skip hiragana/katakana)
       const kanjiWords = words.filter(w => w.type === 'kanji');
       await Promise.all(
         kanjiWords.map(async (word) => {
           try {
             const entry = await lookupFirst(word.text);
-            if (entry?.reading) {
+            // Only use reading if it's an exact match for the word
+            if (entry?.reading && entry.word === word.text) {
               newReadings.set(`${word.text}-${word.startIndex}`, entry.reading);
             }
           } catch {
@@ -111,11 +110,14 @@ export function ResultsScreen() {
         })
       );
 
-      if (newReadings.size > 0) {
-        setWordReadings(newReadings);
-      }
+      // Don't update if this effect was superseded
+      if (cancelled) return;
+      
+      setWordReadings(newReadings);
     }
     fetchReadings();
+    
+    return () => { cancelled = true; };
   }, [words]);
 
   const handleWordPress = useCallback(async (word: SegmentedWord) => {

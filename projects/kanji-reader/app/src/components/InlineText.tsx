@@ -32,7 +32,10 @@ export function InlineText({
         const isSelected = selectedWord?.text === word.text && 
                           selectedWord?.startIndex === word.startIndex;
         
-        const reading = wordReadings?.get(`${word.text}-${word.startIndex}`) || word.romaji;
+        // Only show romaji for kanji words - skip hiragana/katakana
+        const reading = word.type === 'kanji' 
+          ? (wordReadings?.get(`${word.text}-${word.startIndex}`) || word.romaji)
+          : undefined;
         const shouldShowPronunciation = showPronunciation && reading;
         
         return (
