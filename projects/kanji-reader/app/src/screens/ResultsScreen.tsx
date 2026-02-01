@@ -42,6 +42,7 @@ export function ResultsScreen() {
   const [englishTranslation, setEnglishTranslation] = useState<string | null>(null);
   const [isTranslating, setIsTranslating] = useState(false);
   const [wordReadings, setWordReadings] = useState<Map<string, string>>(new Map());
+  const [pronunciationVisible, setPronunciationVisible] = useState(true);
 
   useEffect(() => {
     async function processImage() {
@@ -83,19 +84,26 @@ export function ResultsScreen() {
   }, [rawText]);
 
   useEffect(() => {
-    async function fetchKanjiReadings() {
-      const kanjiWords = words.filter(w => w.type === 'kanji');
-      if (kanjiWords.length === 0) return;
+    async function fetchReadings() {
+      if (words.length === 0) return;
 
-      const uniqueKanjiWords = [...new Set(kanjiWords.map(w => w.text))];
       const newReadings = new Map<string, string>();
 
+      // Add romaji for hiragana/katakana words immediately
+      words.forEach(w => {
+        if ((w.type === 'hiragana' || w.type === 'katakana') && w.romaji) {
+          newReadings.set(`${w.text}-${w.startIndex}`, w.romaji);
+        }
+      });
+
+      // Fetch readings for kanji words
+      const kanjiWords = words.filter(w => w.type === 'kanji');
       await Promise.all(
-        uniqueKanjiWords.map(async (word) => {
+        kanjiWords.map(async (word) => {
           try {
-            const entry = await lookupFirst(word);
+            const entry = await lookupFirst(word.text);
             if (entry?.reading) {
-              newReadings.set(word, entry.reading);
+              newReadings.set(`${word.text}-${word.startIndex}`, entry.reading);
             }
           } catch {
             // Ignore lookup failures
@@ -104,10 +112,10 @@ export function ResultsScreen() {
       );
 
       if (newReadings.size > 0) {
-        setWordReadings(prev => new Map([...prev, ...newReadings]));
+        setWordReadings(newReadings);
       }
     }
-    fetchKanjiReadings();
+    fetchReadings();
   }, [words]);
 
   const handleWordPress = useCallback(async (word: SegmentedWord) => {
@@ -143,6 +151,10 @@ export function ResultsScreen() {
       setIsPlayingFullText(false);
     }
   }, [rawText, isPlayingFullText]);
+
+  const togglePronunciationVisibility = useCallback(() => {
+    setPronunciationVisible(prev => !prev);
+  }, []);
 
   const handleClosePanel = useCallback(() => {
     setSelectedWord(null);
@@ -200,27 +212,41 @@ export function ResultsScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.label}>Full text with pronunciation:</Text>
-            {rawText && (
+            <View style={styles.headerButtons}>
               <Pressable
-                onPress={handlePlayFullText}
-                style={[styles.speakerButton, isPlayingFullText && styles.speakerButtonActive]}
+                onPress={togglePronunciationVisibility}
+                style={styles.toggleButton}
                 accessibilityRole="button"
-                accessibilityLabel="Play full sentence audio"
+                accessibilityLabel={pronunciationVisible ? 'Hide pronunciations' : 'Show pronunciations'}
               >
                 <Ionicons 
-                  name={isPlayingFullText ? 'volume-high' : 'volume-medium'} 
-                  size={24} 
-                  color={isPlayingFullText ? colors.primary : colors.textSecondary} 
+                  name={pronunciationVisible ? 'eye' : 'eye-off'} 
+                  size={22} 
+                  color={colors.textSecondary} 
                 />
               </Pressable>
-            )}
+              {rawText && (
+                <Pressable
+                  onPress={handlePlayFullText}
+                  style={[styles.speakerButton, isPlayingFullText && styles.speakerButtonActive]}
+                  accessibilityRole="button"
+                  accessibilityLabel="Play full sentence audio"
+                >
+                  <Ionicons 
+                    name={isPlayingFullText ? 'volume-high' : 'volume-medium'} 
+                    size={24} 
+                    color={isPlayingFullText ? colors.primary : colors.textSecondary} 
+                  />
+                </Pressable>
+              )}
+            </View>
           </View>
           {words.length > 0 ? (
             <InlineText
               words={words}
               onWordPress={handleWordPress}
               selectedWord={selectedWord}
-              showPronunciation={true}
+              showPronunciation={pronunciationVisible}
               wordReadings={wordReadings}
             />
           ) : (
@@ -308,6 +334,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: spacing.sm,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  toggleButton: {
+    padding: spacing.xs,
+    borderRadius: borderRadius.md,
   },
   speakerButton: {
     padding: spacing.xs,

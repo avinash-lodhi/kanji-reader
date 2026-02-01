@@ -1,11 +1,15 @@
 import React, { useState, useRef } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, Button, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, Button, ActivityIndicator, useWindowDimensions } from 'react-native';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import * as ImageManipulator from 'expo-image-manipulator';
 import { colors } from '../constants/colors';
 import type { RootNavigationProp } from '../navigation/types';
+
+const SCAN_FRAME_WIDTH_PERCENT = 0.8;
+const SCAN_FRAME_HEIGHT = 200;
 
 export default function CameraScreen() {
   const navigation = useNavigation<RootNavigationProp>();
@@ -13,6 +17,7 @@ export default function CameraScreen() {
   const [facing, setFacing] = useState<CameraType>('back');
   const [permission, requestPermission] = useCameraPermissions();
   const [isCapturing, setIsCapturing] = useState(false);
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
   if (!permission) {
     return <View />;
@@ -46,8 +51,29 @@ export default function CameraScreen() {
         skipProcessing: false,
       });
 
-      if (photo?.uri) {
-        navigation.navigate('Results', { imageUri: photo.uri });
+      if (photo?.uri && photo.width && photo.height) {
+        const frameWidth = screenWidth * SCAN_FRAME_WIDTH_PERCENT;
+        const frameHeight = SCAN_FRAME_HEIGHT;
+        const frameX = (screenWidth - frameWidth) / 2;
+        const frameY = (screenHeight - frameHeight) / 2;
+
+        const scaleX = photo.width / screenWidth;
+        const scaleY = photo.height / screenHeight;
+
+        const cropRegion = {
+          originX: Math.round(frameX * scaleX),
+          originY: Math.round(frameY * scaleY),
+          width: Math.round(frameWidth * scaleX),
+          height: Math.round(frameHeight * scaleY),
+        };
+
+        const croppedImage = await ImageManipulator.manipulateAsync(
+          photo.uri,
+          [{ crop: cropRegion }],
+          { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+        );
+
+        navigation.navigate('Results', { imageUri: croppedImage.uri });
       }
     } catch (error) {
       console.error('Failed to capture photo:', error);
@@ -116,8 +142,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   scanFrame: {
-    width: '80%',
-    height: 200,
+    width: `${SCAN_FRAME_WIDTH_PERCENT * 100}%`,
+    height: SCAN_FRAME_HEIGHT,
     borderWidth: 2,
     borderColor: 'rgba(255, 255, 255, 0.6)',
     borderRadius: 12,

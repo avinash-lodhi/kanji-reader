@@ -32,9 +32,8 @@ export function InlineText({
         const isSelected = selectedWord?.text === word.text && 
                           selectedWord?.startIndex === word.startIndex;
         
-        const isKanjiWord = word.type === 'kanji';
-        const reading = wordReadings?.get(word.text);
-        const shouldShowPronunciation = showPronunciation && isKanjiWord && reading;
+        const reading = wordReadings?.get(`${word.text}-${word.startIndex}`) || word.romaji;
+        const shouldShowPronunciation = showPronunciation && reading;
         
         return (
           <Pressable
@@ -71,6 +70,8 @@ const styles = StyleSheet.create({
   },
   wordContainer: {
     alignItems: 'center',
+    justifyContent: 'flex-end',
+    minHeight: 50,
     paddingHorizontal: spacing.xs,
     paddingVertical: spacing.xs,
     marginRight: 2,

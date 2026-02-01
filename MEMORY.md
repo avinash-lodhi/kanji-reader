@@ -35,7 +35,7 @@ Local models **cannot use tools**. Workaround:
 
 ### Workspace Management
 - Core workspace: `~/.openclaw/workspace` (memory, identity files)
-- Projects: `~/.openclaw/workspace/project/<name>/`
+- Projects: `~/.openclaw/workspace/projects/<name>/`
 - **Always use `workdir` param** for project-specific `exec` calls
 - **Always use full absolute paths** for `read`/`write` on project files
 - Never change global workspace config — breaks memory access
