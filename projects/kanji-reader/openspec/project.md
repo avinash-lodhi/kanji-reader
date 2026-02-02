@@ -22,6 +22,7 @@ KanjiReader is a mobile-first app that helps Japanese learners recognize and pro
 
 ### Backend / Services
 - **OCR:** Google Cloud Vision API (Japanese text recognition)
+- **Translation:** Google Cloud Translation API v2 (Neural Machine Translation)
 - **Dictionary:** Jisho API (free) or local SQLite dictionary
 - **TTS:** Google Cloud Text-to-Speech (Japanese voices)
 - **Optional:** Firebase for analytics / crash reporting
@@ -40,7 +41,7 @@ kanji-reader/
 ├── src/
 │   ├── screens/          # Main app screens
 │   ├── components/       # Reusable UI components
-│   ├── services/         # OCR, TTS, Dictionary APIs
+│   ├── services/         # OCR, TTS, Dictionary, Translation APIs
 │   ├── hooks/            # Custom React hooks
 │   ├── utils/            # Helper functions
 │   ├── types/            # TypeScript types

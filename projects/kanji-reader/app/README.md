@@ -14,6 +14,7 @@ A mobile app for learning Japanese Kanji through camera scanning and pronunciati
 
 - **React Native** + **Expo** (SDK 54)
 - **Google Cloud Vision API** for OCR
+- **Google Cloud Translation API** for Japanese → English translation
 - **Jisho.org API** for dictionary
 - **Expo Speech** for TTS
 - **Zustand** for state management
@@ -95,8 +96,9 @@ src/
 ├── components/     # Reusable UI components
 ├── screens/        # Screen components
 ├── services/       # API/business logic
-│   ├── dictionary/ # Jisho API integration
-│   ├── tts/        # Text-to-speech
+│   ├── dictionary/   # Jisho API integration
+│   ├── translation/  # Google Cloud Translation (with caching)
+│   ├── tts/          # Text-to-speech
 │   └── segmentation/ # Word segmentation
 ├── store/          # Zustand stores
 ├── constants/      # Colors, spacing, typography
@@ -106,14 +108,20 @@ src/
 
 ## API Keys
 
-### Google Cloud Vision
+### Google Cloud APIs (Vision + Translation)
+
+A single API key is used for both OCR and translation:
 
 1. Create a project in [Google Cloud Console](https://console.cloud.google.com/)
-2. Enable Cloud Vision API
-3. Create an API key
-4. Add to `.env` file
+2. Enable **Cloud Vision API** (for OCR)
+3. Enable **Cloud Translation API** (for translations)
+4. Create an API key (APIs & Services → Credentials → Create Credentials → API Key)
+5. **Recommended:** Restrict the key to only Vision and Translation APIs
+6. Add to `.env` file
 
-**Free tier:** 1,000 requests/month
+**Free tiers:**
+- Vision API: 1,000 requests/month
+- Translation API: 500,000 characters/month
 
 ### Jisho API
 
