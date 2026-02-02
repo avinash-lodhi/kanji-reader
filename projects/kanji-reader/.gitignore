@@ -12,7 +12,6 @@ TOOLS.md
 USER.md
 
 # Build artifacts and config
-.beads/
 eas.json
 
 # Archive files
