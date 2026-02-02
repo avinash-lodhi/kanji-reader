@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, forwardRef } from 'react';
+import React, { useCallback, useMemo, forwardRef, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import BottomSheet, { BottomSheetView, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,6 +8,7 @@ import { spacing, borderRadius } from '../constants/spacing';
 import { fontSizes, fontWeights } from '../constants/typography';
 import type { SegmentedWord } from '../services/segmentation';
 import type { DictionaryEntry } from '../services/dictionary';
+import { translationService } from '../services/translation';
 
 interface DetailPanelProps {
   word: SegmentedWord;
@@ -22,6 +23,41 @@ interface DetailPanelProps {
 export const DetailPanel = forwardRef<BottomSheet, DetailPanelProps>(
   ({ word, entry, isLoading, onClose, onPlayAudio, isPlayingAudio = false, sentenceContext }, ref) => {
     const snapPoints = useMemo(() => ['45%'], []);
+    const [wordTranslation, setWordTranslation] = useState<string | null>(null);
+    const [isTranslating, setIsTranslating] = useState(false);
+
+    // Fetch word-level translation as fallback when no dictionary entry
+    useEffect(() => {
+      let cancelled = false;
+
+      async function fetchTranslation() {
+        // Only translate if no dictionary entry and not currently loading
+        if (isLoading || entry) {
+          setWordTranslation(null);
+          return;
+        }
+
+        setIsTranslating(true);
+        try {
+          const result = await translationService.translateToEnglish(word.text);
+          if (!cancelled && result) {
+            setWordTranslation(result.translatedText);
+          }
+        } catch (err) {
+          console.warn('Word translation failed:', err);
+        } finally {
+          if (!cancelled) {
+            setIsTranslating(false);
+          }
+        }
+      }
+
+      fetchTranslation();
+
+      return () => {
+        cancelled = true;
+      };
+    }, [word.text, entry, isLoading]);
 
     const handlePlayAudio = async () => {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -134,9 +170,21 @@ export const DetailPanel = forwardRef<BottomSheet, DetailPanelProps>(
             <View style={styles.notFound}>
               <Ionicons name="help-circle-outline" size={48} color={colors.textMuted} />
               <Text style={styles.notFoundText}>No dictionary entry found</Text>
-              <Text style={styles.notFoundHint}>
-                This word may be a name or very specialized term
-              </Text>
+              {isTranslating ? (
+                <View style={styles.translationFallback}>
+                  <ActivityIndicator size="small" color={colors.primary} />
+                  <Text style={styles.translatingText}>Translating...</Text>
+                </View>
+              ) : wordTranslation ? (
+                <View style={styles.translationFallback}>
+                  <Text style={styles.translationLabel}>Translation:</Text>
+                  <Text style={styles.translationValue}>{wordTranslation}</Text>
+                </View>
+              ) : (
+                <Text style={styles.notFoundHint}>
+                  This word may be a name or very specialized term
+                </Text>
+              )}
             </View>
           )}
         </BottomSheetView>
@@ -265,6 +313,30 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     textAlign: 'center',
     marginTop: spacing.xs,
+  },
+  translationFallback: {
+    marginTop: spacing.md,
+    alignItems: 'center',
+  },
+  translatingText: {
+    fontSize: fontSizes.sm,
+    color: colors.textMuted,
+    marginTop: spacing.xs,
+  },
+  translationLabel: {
+    fontSize: fontSizes.sm,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+  },
+  translationValue: {
+    fontSize: fontSizes.base,
+    color: colors.text,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    backgroundColor: colors.surface,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.sm,
   },
 });
 
