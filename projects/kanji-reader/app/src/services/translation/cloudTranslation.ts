@@ -29,7 +29,8 @@ class CloudTranslationService implements ITranslationService {
   private endpoint: string;
 
   constructor() {
-    this.apiKey = config.googleCloudApiKey;
+    // Use dedicated Translation API key (separate from Vision key for security)
+    this.apiKey = config.googleCloudTranslateApiKey;
     this.endpoint = config.translationApiUrl;
   }
 

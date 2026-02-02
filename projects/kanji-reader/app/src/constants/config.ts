@@ -3,11 +3,17 @@
  * 
  * Centralized access to environment variables and app settings.
  * All API keys and sensitive config should be accessed through this module.
+ * 
+ * Security Note:
+ * - API keys are stored in .env (gitignored)
+ * - Each key is restricted to its specific API in GCP Console
+ * - Keys are embedded in app bundle (consider app restrictions)
  */
 
 interface AppConfig {
-  // API Keys (single key for all Google Cloud services)
-  googleCloudApiKey: string;
+  // API Keys (separate keys for each service - principle of least privilege)
+  googleCloudVisionApiKey: string;
+  googleCloudTranslateApiKey: string;
   
   // API Endpoints
   visionApiUrl: string;
@@ -25,8 +31,11 @@ interface AppConfig {
 }
 
 const config: AppConfig = {
-  // API Keys from environment (same key for Vision + Translation)
-  googleCloudApiKey: process.env.EXPO_PUBLIC_GOOGLE_CLOUD_API_KEY || '',
+  // API Keys - separate keys for better security
+  // Vision API key (restricted to Cloud Vision API)
+  googleCloudVisionApiKey: process.env.EXPO_PUBLIC_GOOGLE_CLOUD_API_KEY || '',
+  // Translation API key (restricted to Cloud Translation API)
+  googleCloudTranslateApiKey: process.env.EXPO_PUBLIC_GOOGLE_TRANSLATE_API_KEY || '',
   
   // API Endpoints
   visionApiUrl: 'https://vision.googleapis.com/v1/images:annotate',
@@ -49,8 +58,12 @@ export default config;
 export function validateConfig(): { valid: boolean; missing: string[] } {
   const missing: string[] = [];
   
-  if (!config.googleCloudApiKey) {
+  if (!config.googleCloudVisionApiKey) {
     missing.push('EXPO_PUBLIC_GOOGLE_CLOUD_API_KEY');
+  }
+  
+  if (!config.googleCloudTranslateApiKey) {
+    missing.push('EXPO_PUBLIC_GOOGLE_TRANSLATE_API_KEY');
   }
   
   return {

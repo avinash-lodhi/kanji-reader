@@ -13,7 +13,7 @@ global.fetch = jest.fn();
 jest.mock('../../../constants/config', () => ({
   __esModule: true,
   default: {
-    googleCloudApiKey: 'test-api-key',
+    googleCloudTranslateApiKey: 'test-translate-api-key',
     translationApiUrl: 'https://translation.googleapis.com/language/translate/v2',
     translationCacheSize: 10,
     translationCacheTtlMs: 1000 * 60 * 60, // 1 hour
