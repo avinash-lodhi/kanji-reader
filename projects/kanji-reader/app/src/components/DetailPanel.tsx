@@ -15,11 +15,12 @@ interface DetailPanelProps {
   isLoading: boolean;
   onClose: () => void;
   onPlayAudio: () => void;
+  isPlayingAudio?: boolean;
   sentenceContext?: string;
 }
 
 export const DetailPanel = forwardRef<BottomSheet, DetailPanelProps>(
-  ({ word, entry, isLoading, onClose, onPlayAudio, sentenceContext }, ref) => {
+  ({ word, entry, isLoading, onClose, onPlayAudio, isPlayingAudio = false, sentenceContext }, ref) => {
     const snapPoints = useMemo(() => ['45%'], []);
 
     const handlePlayAudio = async () => {
@@ -63,11 +64,15 @@ export const DetailPanel = forwardRef<BottomSheet, DetailPanelProps>(
             </View>
             <Pressable
               onPress={handlePlayAudio}
-              style={styles.audioButton}
+              style={[styles.audioButton, isPlayingAudio && styles.audioButtonActive]}
               accessibilityRole="button"
-              accessibilityLabel="Play pronunciation"
+              accessibilityLabel={isPlayingAudio ? 'Stop pronunciation' : 'Play pronunciation'}
             >
-              <Ionicons name="volume-high" size={28} color={colors.primary} />
+              <Ionicons 
+                name={isPlayingAudio ? 'stop-circle' : 'volume-high'} 
+                size={28} 
+                color={colors.primary} 
+              />
             </Pressable>
           </View>
 
@@ -178,6 +183,10 @@ const styles = StyleSheet.create({
   audioButton: {
     padding: spacing.sm,
     marginLeft: spacing.md,
+    borderRadius: borderRadius.md,
+  },
+  audioButtonActive: {
+    backgroundColor: colors.primaryLight + '30',
   },
   loadingContainer: {
     flex: 1,

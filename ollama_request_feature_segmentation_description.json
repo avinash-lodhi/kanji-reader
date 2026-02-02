@@ -1,0 +1,12 @@
+{
+  "model": "deepseek-coder:6.7b",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Generate a detailed, self-documenting description for a 'bead' of type 'feature' for the 'Improved Word Segmentation' enhancement. This feature bead is a child of the epic 'KanjiReader App Enhancements v1.0' (ID: KanjiReader-zwg). The description should include the problem, proposed solution, and acceptance criteria from the openspec, along with detailed background, reasoning/justification, considerations, and how it contributes to the parent epic's goals. Ensure it's written as if speaking to a 'future self'.
+
+---RELEVANT OPENSPEC SECTION---\n## Improved Word Segmentation\nWhile the app manages to break down basic words like '感じ' (to perceive) into its component parts, it fails to handle more complex cases accurately. This could lead inaccuracies in pronunciation/meaning display resulting from incorrect segmentation of phrases or compounds. For example, conjugated verbs are incorrectly splitting at morphological boundaries, such as '感じた' into '感じ' and 'た', '思い出し て' into '思い出し' and 'て', and '書こ う' into '書こ' and 'う'. This leads to grammatically incorrect and hard-to-read displays. To tackle this problem, a solution can be developed that considers dictionary lookup or morphological analysis post-processing the OCR output.\n\n### Acceptance Criteria:\n1. All word components should correctly separate and link together for their proper meanings.\n2. Phrases that are split up will maintain their correct pronunciation, meaning, and grammatical context.\n3. The improvement in segmentation can be verified with sets of tests involving various sentence structure inputs to test its robustness. These segmentations must match our pre-established dictionaries or have good morphological analysis results (e.g., correct verb stems and auxiliaries joining).\n4. Conjugated Japanese verbs and other morphologically linked units (e.g., verb stems and auxiliary endings) must be displayed as single, correctly formed words (e.g., '感じた' instead of '感じ た').\n5. The segmentation should prioritize readability and grammatical correctness for the learner, even if it means deviating from a strict morpheme-by-morpheme split in the display.\n"
+    }
+  ],
+  "stream": false
+}'

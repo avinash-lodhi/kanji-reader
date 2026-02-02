@@ -1,0 +1,10 @@
+{
+  "model": "deepseek-coder:6.7b",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Generate an openspec proposal in markdown format for the following enhancements to the KanjiReader app. Ensure each section clearly defines the problem and a proposed solution.\n\n### Enhancements:\n1.  **Spacing in Pronunciation/Text:** The current display has excessive spacing around the pronunciation and in-context text, making it visually clunky.\n2.  **Audio Stop Control:** Once audio for a word starts playing, there is no UI element or mechanism to stop it.\n3.  **Word Segregation:** The app is excessively splitting words, for example, '感じた' is split into '感じ' and 'た'. This needs to be corrected for accurate display and meaning.\n\n### Openspec Structure:\n-   Title: KanjiReader App Enhancements v1.0\n-   Introduction: Briefly describe the purpose of this openspec.\n-   Section 1: Spacing Refinement\n    -   Problem: Describe the current spacing issue.\n    -   Proposed Solution: Suggest how to reduce visual clutter and improve readability.\n    -   Acceptance Criteria: How to verify the fix.\n-   Section 2: Audio Playback Control\n    -   Problem: Describe the lack of stop functionality.\n    -   Proposed Solution: Suggest adding a stop/pause button or a toggle.\n    -   Acceptance Criteria: How to verify the fix.\n-   Section 3: Improved Word Segmentation\n    -   Problem: Describe the issue with words like '感じた' being split.\n    -   Proposed Solution: Suggest investigation into OCR post-processing, morphological analysis, or dictionary lookup adjustments.\n    -   Acceptance Criteria: How to verify correct segmentation."
+    }
+  ],
+  "stream": false
+}

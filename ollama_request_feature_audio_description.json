@@ -1,0 +1,12 @@
+{
+  "model": "deepseek-coder:6.7b",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Generate a detailed, self-documenting description for a 'bead' of type 'feature' for the 'Audio Playback Control' enhancement. This feature bead is a child of the epic 'KanjiReader App Enhancements v1.0' (ID: KanjiReader-zwg). The description should include the problem, proposed solution, and acceptance criteria from the openspec, along with detailed background, reasoning/justification, considerations, and how it contributes to the parent epic's goals. Ensure it's written as if speaking to a 'future self'.
+
+---RELEVANT OPENSPEC SECTION---\n## Audio Playback Control\nAudio playback has no stop mechanism once it starts playing. This could cause confusion or frustration for users who need to have control over their experience. An enhancement can include adding a pause/stop button directly at the audio player's bar, ensuring an immediate stop when interacted with. \n\n### Acceptance Criteria:\n1. A hover element must be present within two taps of any UI component to initiate playback.\n2. The stop icon should effectively indicate that audio is playing and can be paused or stopped immediately on tap.\n3. Users' recording progress shall not lose when they navigate away from the page, ensuring continuity throughout their learning experience.\n"
+    }
+  ],
+  "stream": false
+}'

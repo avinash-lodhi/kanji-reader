@@ -12,6 +12,7 @@ interface InlineTextProps {
   selectedWord?: SegmentedWord | null;
   showPronunciation?: boolean;
   wordReadings?: Map<string, string>;
+  compactMode?: boolean;
 }
 
 export function InlineText({ 
@@ -20,6 +21,7 @@ export function InlineText({
   selectedWord,
   showPronunciation = true,
   wordReadings,
+  compactMode = false,
 }: InlineTextProps) {
   const handleWordPress = async (word: SegmentedWord) => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -44,6 +46,7 @@ export function InlineText({
             onPress={() => handleWordPress(word)}
             style={({ pressed }) => [
               styles.wordContainer,
+              compactMode && styles.wordContainerCompact,
               isSelected && styles.selectedWord,
               pressed && styles.pressedWord,
             ]}
@@ -51,7 +54,11 @@ export function InlineText({
             accessibilityLabel={`${word.text}${reading ? `, pronounced ${reading}` : ''}`}
           >
             {shouldShowPronunciation && (
-              <Text style={[styles.pronunciation, isSelected && styles.selectedPronunciation]}>
+              <Text style={[
+                styles.pronunciation, 
+                compactMode && styles.pronunciationCompact,
+                isSelected && styles.selectedPronunciation
+              ]}>
                 {reading}
               </Text>
             )}
@@ -74,12 +81,19 @@ const styles = StyleSheet.create({
   wordContainer: {
     alignItems: 'center',
     justifyContent: 'flex-end',
-    minHeight: 50,
-    paddingHorizontal: spacing.xs,
-    paddingVertical: spacing.xs,
-    marginRight: 2,
-    marginBottom: spacing.xs,
+    minHeight: 44,
+    paddingHorizontal: 2,
+    paddingVertical: 2,
+    marginRight: 1,
+    marginBottom: 2,
     borderRadius: 4,
+  },
+  wordContainerCompact: {
+    minHeight: 38,
+    paddingHorizontal: 1,
+    paddingVertical: 1,
+    marginRight: 0,
+    marginBottom: 1,
   },
   selectedWord: {
     backgroundColor: colors.primaryLight,
@@ -90,7 +104,11 @@ const styles = StyleSheet.create({
   pronunciation: {
     fontSize: fontSizes.xs,
     color: colors.textMuted,
-    marginBottom: 2,
+    marginBottom: 1,
+  },
+  pronunciationCompact: {
+    marginBottom: 0,
+    fontSize: fontSizes.xs - 1,
   },
   selectedPronunciation: {
     color: colors.primary,

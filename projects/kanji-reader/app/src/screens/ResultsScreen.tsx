@@ -22,6 +22,8 @@ import { segmentText, SegmentedWord } from '../services/segmentation';
 import { lookupFirst, DictionaryEntry } from '../services/dictionary';
 import { ttsService } from '../services/tts';
 import { translationService } from '../services/translation';
+import { useAudioCleanup } from '../hooks';
+import { useSpacingPreference } from '../hooks/useSpacingPreference';
 
 type ResultsScreenRouteProp = RouteProp<RootStackParamList, 'Results'>;
 
@@ -43,6 +45,27 @@ export function ResultsScreen() {
   const [isTranslating, setIsTranslating] = useState(false);
   const [wordReadings, setWordReadings] = useState<Map<string, string>>(new Map());
   const [pronunciationVisible, setPronunciationVisible] = useState(false);
+  const [isPlayingWordAudio, setIsPlayingWordAudio] = useState(false);
+  const { compactMode, toggleCompactMode } = useSpacingPreference();
+
+  useAudioCleanup();
+
+  useEffect(() => {
+    const unsubscribe = ttsService.onStateChange((state) => {
+      const currentText = ttsService.getCurrentText();
+      if (state === 'idle') {
+        setIsPlayingFullText(false);
+        setIsPlayingWordAudio(false);
+      } else if (currentText === rawText) {
+        setIsPlayingFullText(true);
+        setIsPlayingWordAudio(false);
+      } else if (selectedWord && currentText === selectedWord.text) {
+        setIsPlayingWordAudio(true);
+        setIsPlayingFullText(false);
+      }
+    });
+    return unsubscribe;
+  }, [rawText, selectedWord]);
 
   useEffect(() => {
     async function processImage() {
@@ -138,19 +161,18 @@ export function ResultsScreen() {
   }, []);
 
   const handlePlayAudio = useCallback(() => {
-    if (selectedWord) {
+    if (isPlayingWordAudio) {
+      ttsService.stop();
+    } else if (selectedWord) {
       ttsService.speakJapanese(selectedWord.text);
     }
-  }, [selectedWord]);
+  }, [selectedWord, isPlayingWordAudio]);
 
-  const handlePlayFullText = useCallback(async () => {
-    if (!rawText || isPlayingFullText) return;
-    
-    setIsPlayingFullText(true);
-    try {
-      await ttsService.speakJapanese(rawText, 0.9);
-    } finally {
-      setIsPlayingFullText(false);
+  const handlePlayFullText = useCallback(() => {
+    if (isPlayingFullText) {
+      ttsService.stop();
+    } else if (rawText) {
+      ttsService.speakJapanese(rawText, 0.9);
     }
   }, [rawText, isPlayingFullText]);
 
@@ -216,6 +238,18 @@ export function ResultsScreen() {
             <Text style={styles.label}>Full text with pronunciation:</Text>
             <View style={styles.headerButtons}>
               <Pressable
+                onPress={toggleCompactMode}
+                style={styles.toggleButton}
+                accessibilityRole="button"
+                accessibilityLabel={compactMode ? 'Switch to default spacing' : 'Switch to compact spacing'}
+              >
+                <Ionicons 
+                  name={compactMode ? 'expand-outline' : 'contract-outline'} 
+                  size={20} 
+                  color={colors.textSecondary} 
+                />
+              </Pressable>
+              <Pressable
                 onPress={togglePronunciationVisibility}
                 style={styles.toggleButton}
                 accessibilityRole="button"
@@ -232,10 +266,10 @@ export function ResultsScreen() {
                   onPress={handlePlayFullText}
                   style={[styles.speakerButton, isPlayingFullText && styles.speakerButtonActive]}
                   accessibilityRole="button"
-                  accessibilityLabel="Play full sentence audio"
+                  accessibilityLabel={isPlayingFullText ? 'Stop audio' : 'Play full sentence audio'}
                 >
                   <Ionicons 
-                    name={isPlayingFullText ? 'volume-high' : 'volume-medium'} 
+                    name={isPlayingFullText ? 'stop-circle' : 'volume-medium'} 
                     size={24} 
                     color={isPlayingFullText ? colors.primary : colors.textSecondary} 
                   />
@@ -250,6 +284,7 @@ export function ResultsScreen() {
               selectedWord={selectedWord}
               showPronunciation={pronunciationVisible}
               wordReadings={wordReadings}
+              compactMode={compactMode}
             />
           ) : (
             <Text style={styles.fullText}>{rawText || '(No text detected)'}</Text>
@@ -283,6 +318,7 @@ export function ResultsScreen() {
           isLoading={isLoadingEntry}
           onClose={handleClosePanel}
           onPlayAudio={handlePlayAudio}
+          isPlayingAudio={isPlayingWordAudio}
           sentenceContext={rawText}
         />
       )}

@@ -10,6 +10,7 @@ import { toHiragana } from 'wanakana';
 import { detectWordType, CharacterType } from '../../utils/characterType';
 import { toRomaji } from '../../utils/romaji';
 import { kuromojiService } from '../kuromoji';
+import { joinMorphemes } from './morphemeJoiner';
 
 // Initialize the Budoux parser (fallback)
 const parser = loadDefaultJapaneseParser();
@@ -36,7 +37,8 @@ export interface SegmentedWord {
  * Segment text using Kuromoji tokenizer
  */
 function segmentWithKuromoji(text: string): SegmentedWord[] {
-  const tokens = kuromojiService.tokenize(text);
+  const rawTokens = kuromojiService.tokenize(text);
+  const tokens = joinMorphemes(rawTokens);
   const words: SegmentedWord[] = [];
 
   for (const token of tokens) {
