@@ -1,0 +1,27 @@
+# Generated files related to bead creation
+epic_description.md
+feature_audio_description.md
+feature_segmentation_description.md
+feature_spacing_description.md
+
+# Agent Context Files (personal to agent, not project code)
+HEARTBEAT.md
+IDENTITY.md
+SOUL.md
+TOOLS.md
+USER.md
+
+# Build artifacts and config
+.beads/
+eas.json
+
+# Archive files
+kanjireader_mvp_archive.md
+kanjireader_v1_archive.md
+kanjireader_v2_archive.md
+
+# Other temporary/draft files
+proposal.md
+
+# Node modules (common for JS projects)
+node_modules/
