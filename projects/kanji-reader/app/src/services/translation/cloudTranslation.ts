@@ -175,7 +175,8 @@ class CloudTranslationService implements ITranslationService {
     attempt: number = 0
   ): Promise<TranslationResult | null> {
     try {
-      const response = await fetch(this.endpoint, {
+      const url = `${this.endpoint}?key=${this.apiKey}`;
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -183,7 +184,6 @@ class CloudTranslationService implements ITranslationService {
           source,
           target,
           format: 'text',
-          key: this.apiKey,
         }),
       });
 
@@ -223,7 +223,8 @@ class CloudTranslationService implements ITranslationService {
     source: string,
     target: string
   ): Promise<(TranslationResult | null)[]> {
-    const response = await fetch(this.endpoint, {
+    const url = `${this.endpoint}?key=${this.apiKey}`;
+    const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -231,7 +232,6 @@ class CloudTranslationService implements ITranslationService {
         source,
         target,
         format: 'text',
-        key: this.apiKey,
       }),
     });
 
