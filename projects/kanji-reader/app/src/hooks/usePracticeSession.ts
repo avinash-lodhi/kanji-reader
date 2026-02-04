@@ -97,6 +97,19 @@ export function usePracticeSession(
     const result = validateStroke(points, currentExpectedStroke);
     setLastValidationResult(result);
 
+    // Dev-only validation logging for threshold tuning
+    if (__DEV__) {
+      console.log(
+        `[StrokeValidation] Stroke ${currentState.currentStrokeIndex + 1}/${currentTotalStrokes}:`,
+        `valid=${result.isValid}`,
+        `confidence=${result.confidence}`,
+        `feedback=${result.feedback}`,
+        `userStart=(${points[0]?.x.toFixed(3)}, ${points[0]?.y.toFixed(3)})`,
+        `refStart=(${currentExpectedStroke.startX.toFixed(3)}, ${currentExpectedStroke.startY.toFixed(3)})`,
+        `points=${points.length}`
+      );
+    }
+
     if (result.isValid) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       
