@@ -45,82 +45,52 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 
 ## 🧠 Tiered Model Architecture
 
-We use a tiered approach to balance capability, cost, and rate limits:
+We use a tiered approach to ensure reliability and performance:
 
 ### Model Tiers
 
 | Tier | Models | Use For |
 |------|--------|---------|
-| **Heavy** | Claude Opus 4.5, Gemini Pro | Complex reasoning, orchestration, architecture, tool usage |
-| **Local** | ollama/llama3:latest (8B, 8k ctx), ollama/deepseek-coder:6.7b (16k ctx) | Content generation, code drafting, structured text output |
+| **Primary** | Claude Opus 4.5 | Complex reasoning, orchestration, architecture, tool usage |
+| **Fallback** | Gemini Pro / Other High-End Models | Redundancy when Primary is unavailable or rate-limited |
 
-### ⚠️ Critical Constraint: Local Models Cannot Use Tools
+### 🚀 Simplified Workflow
 
-Due to hardware limitations, local models **cannot** directly invoke tools (`read`, `write`, `exec`, `web_search`, etc.). This is non-negotiable.
+We no longer rely on local models for generation. The Primary model handles both reasoning and content generation.
 
-**The Workaround: Content Generation + Tool Execution Split**
+**Workflow:**
+1. **Primary Model:** Analyzes task, generates content (code, specs), and executes tools directly.
+2. **Fallback Strategy:** If the Primary model fails or is unavailable, the Fallback model takes over the same full-stack responsibilities.
 
-1. **Local Model Role:** Generate textual content (code, specs, task descriptions) as raw string output
-2. **Heavy Model Role:** Receive local model output, then execute necessary tool calls
-
-**Example Flow:**
-```
-[Heavy Model] "Generate a Python function that parses JSON config files"
-    ↓
-[Local Model] Returns: "def parse_config(path): ..." (raw code string)
-    ↓
-[Heavy Model] exec: write(path="utils/config.py", content=<local model output>)
-```
-
-This preserves rate limits on heavy models while leveraging local models for verbose generation tasks.
-
-### 🔄 Fallback Strategy
-
-If a local model is unavailable or repeatedly generates invalid content (after 1-2 retries):
-1. Log the failure in daily memory
-2. Fall back to the heavy model for that specific generation task
-3. Continue the workflow — don't block on local model issues
-
-**Principle:** Local models are an optimization, not a hard dependency. The workflow must remain functional.
+**Principle:** Reliability > Optimization. We use capable models for everything to minimize context switching and schema errors.
 
 ---
 
 ## 📋 openspec - Plan Creation
 
-`openspec` creates structured specifications. Local models generate the content; heavy models validate and persist.
+`openspec` creates structured specifications. The Primary model generates and validates content directly.
 
 ### Workflow
 
-1. **Heavy Model Orchestrates:** Understands requirements, decides spec structure needed
-2. **Heavy Model Prompts Local:** Provides precise instructions including:
-   - Exact format (YAML, JSON, markdown)
-   - Required fields and schema
-   - Context, constraints, examples
-3. **Local Model Generates:** Outputs the full spec as structured text
-4. **Heavy Model Validates:**
-   - Reviews for syntactic correctness (valid YAML/JSON)
-   - Checks semantic accuracy against requirements
-   - Runs CLI validation if available: `exec(command="openspec validate <file>", workdir=<project_path>)`
-5. **Iterative Refinement:** If issues found, provide targeted feedback to local model and regenerate
-
-### Why This Works for Complexity
-
-- Heavy models handle the *understanding* and *validation* — the complex parts
-- Local models handle the *verbose text generation* — the token-heavy parts
-- Validation loop catches errors before they propagate
+1. **Analyze:** Understand requirements and decide spec structure needed.
+2. **Generate:** Create the spec content directly.
+3. **Validate:**
+   - Review for syntactic correctness (valid YAML/JSON)
+   - Check semantic accuracy against requirements
+   - Run CLI validation if available: `exec(command="openspec validate <file>", workdir=<project_path>)`
+4. **Refine:** Self-correct any issues found during validation.
 
 ---
 
 ## 📦 beads - Task Management
 
-`beads` tracks tasks via CLI (`bd` commands). Same principle as openspec.
+`beads` tracks tasks via CLI (`bd` commands).
 
 ### Workflow
 
-1. **Heavy Model Identifies:** Determines a task needs to be created/updated
-2. **Heavy Model Prompts Local:** "Generate a beads task description for X with objectives Y and acceptance criteria Z"
-3. **Local Model Generates:** Returns task description as text
-4. **Heavy Model Executes:** `exec(command="bd add '<task>'", workdir=<project_path>)`
+1. **Identify:** Determine a task needs to be created/updated.
+2. **Generate:** Create the task description with objectives and acceptance criteria.
+3. **Execute:** Run `exec(command="bd add '<task>'", workdir=<project_path>)` directly.
 
 ### Critical: Always Use `workdir` for `bd` Commands
 

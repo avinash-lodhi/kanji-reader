@@ -43,3 +43,5 @@ yarn-error.*
 # Environment variables
 .env
 .env.local
+assets/stroke-data/
+.kanjivg-temp/

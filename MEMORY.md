@@ -45,10 +45,44 @@ Local models **cannot use tools**. Workaround:
 - Heavy model: orchestrates, validates, executes tools
 - Fallback: if local fails 2x, heavy model takes over
 
+## WhatsApp Setup
+- **Gateway number:** +919110590927 (sends messages)
+- **Avinash's number:** +918220781212 (receives messages + notifications)
+- Config: `selfChatMode: false`, `allowFrom: ["+918220781212"]`
+- Config backup: `/home/krot/.openclaw/openclaw.json.backup-20260203`
+
+## Wake-up System
+- Avinash texts "good night" → I calculate 7h sleep → set isolated cron job
+- Cron: `sessionTarget="isolated"`, `agentTurn`, `deliver=true`, `to="+918220781212"`, `channel="whatsapp"`
+- systemEvent does NOT send WhatsApp (only injects into session)
+
+## Second Brain
+- Avinash has Google One subscription → NotebookLM access
+- System: Rei captures (WhatsApp) → NotebookLM processes → Drive stores
+- "Remember: [thing]" texts get filed in memory
+
+## Daily Structure
+- Morning check-in: "What's the ONE thing today?"
+- Evening brain dump: What happened, what's on mind, open loops
+- Goal: ~7h sleep, gradually shift wake time earlier
+
 ## Projects
 
 ### KanjiReader 📱
 - Japanese Kanji learning app (scan → OCR → pronunciation/meaning)
 - Stack: React Native + Expo, Google Cloud Vision, Jisho API
 - Path: `/home/krot/.openclaw/workspace/projects/kanji-reader`
-- Status: Phase 1 complete, Phase 2 (Camera) ready
+- Status: v1.0.0 Stable, Maintenance phase
+- **Next Epic:** Kanji Writing Practice (`KanjiReader-e8c`) — full proposal + 35 beads created, approved, ready for implementation
+  - Covers kanji + hiragana + katakana writing
+  - Memory recall philosophy: blank canvas, progressive hints
+  - SRS-ready schema from day one
+
+### Agent Architecture
+- **2026-02-04:** Switched from Heavy/Local model tiering to Primary/Fallback
+- No more local models (ollama) in the workflow
+- Primary: Claude Opus 4.5 | Fallback: Gemini Pro
+
+### Project Workflow
+- Created `PROJECT_CONTEXT.md` — standardized 7-step session protocol for project work
+- Enforces: open project → check beads → openspec status → archive → version → decisions

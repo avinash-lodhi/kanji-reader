@@ -8,7 +8,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "process-kanjivg": "node scripts/process-kanjivg.js"
   },
   "jest": {
     "transform": {
