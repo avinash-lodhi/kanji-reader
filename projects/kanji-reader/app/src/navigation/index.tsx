@@ -13,6 +13,7 @@ import { RootStackParamList } from './types';
 import { MainTabs } from './MainTabs';
 import { ResultsScreen } from '../screens/ResultsScreen';
 import { WritingPracticeScreen } from '../screens/WritingPracticeScreen';
+import { PracticeListScreen } from '../screens/PracticeListScreen';
 import { colors } from '../constants/colors';
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -42,6 +43,16 @@ export function RootNavigator() {
         options={{
           headerShown: true,
           headerTitle: 'Writing Practice',
+          headerBackTitle: 'Back',
+          headerTintColor: colors.primary,
+        }}
+      />
+      <Stack.Screen
+        name="PracticeList"
+        component={PracticeListScreen}
+        options={{
+          headerShown: true,
+          headerTitle: 'Practice List',
           headerBackTitle: 'Back',
           headerTintColor: colors.primary,
         }}
