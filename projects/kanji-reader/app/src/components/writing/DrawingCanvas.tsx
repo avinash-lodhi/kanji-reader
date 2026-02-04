@@ -70,6 +70,9 @@ export function DrawingCanvas({
       PanResponder.create({
         onStartShouldSetPanResponder: () => !disabledRef.current,
         onMoveShouldSetPanResponder: () => !disabledRef.current,
+        // Capture phase: intercept touch BEFORE ScrollView can claim it
+        onStartShouldSetPanResponderCapture: () => !disabledRef.current,
+        onMoveShouldSetPanResponderCapture: () => !disabledRef.current,
         onPanResponderTerminationRequest: () => false, // don't let ScrollView steal the gesture
 
         onPanResponderGrant: (e) => {
