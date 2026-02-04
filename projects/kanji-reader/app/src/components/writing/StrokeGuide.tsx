@@ -5,11 +5,12 @@
  * Core visual component for Learn Mode.
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import Svg, { Path, Circle, Text as SvgText } from 'react-native-svg';
 import { StrokeData } from '../../services/strokeData';
 import { colors } from '../../constants/colors';
+import { AnimatedStroke } from './AnimatedStroke';
 
 interface StrokeGuideProps {
   strokeData: StrokeData;
@@ -17,6 +18,9 @@ interface StrokeGuideProps {
   showNumbers?: boolean;
   size?: number;
   showGrid?: boolean;
+  animated?: boolean;
+  animationDuration?: number;
+  onStrokeAnimationComplete?: () => void;
 }
 
 const VIEWBOX_SIZE = 109;
@@ -50,8 +54,25 @@ export function StrokeGuide({
   showNumbers = false,
   size = 200,
   showGrid = false,
+  animated = false,
+  animationDuration = 500,
+  onStrokeAnimationComplete,
 }: StrokeGuideProps) {
   const { strokes } = strokeData;
+  const [animatingStroke, setAnimatingStroke] = useState<number | null>(null);
+  const [prevCurrentStroke, setPrevCurrentStroke] = useState(currentStroke);
+
+  useEffect(() => {
+    if (animated && currentStroke > prevCurrentStroke && currentStroke >= 0) {
+      setAnimatingStroke(currentStroke);
+    }
+    setPrevCurrentStroke(currentStroke);
+  }, [currentStroke, animated, prevCurrentStroke]);
+
+  const handleAnimationComplete = () => {
+    setAnimatingStroke(null);
+    onStrokeAnimationComplete?.();
+  };
   
   return (
     <View style={[styles.container, { width: size, height: size }]}>
@@ -82,6 +103,21 @@ export function StrokeGuide({
           
           const isCurrentStroke = index === currentStroke;
           const isPreviousStroke = index < currentStroke;
+          const shouldAnimate = animated && index === animatingStroke;
+          
+          if (shouldAnimate) {
+            return (
+              <AnimatedStroke
+                key={index}
+                d={stroke.path}
+                stroke={colors.primary}
+                strokeWidth={4}
+                animate={true}
+                duration={animationDuration}
+                onAnimationComplete={handleAnimationComplete}
+              />
+            );
+          }
           
           return (
             <Path
