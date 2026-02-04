@@ -258,7 +258,8 @@ export function WritingPracticeScreen() {
                 showNumbers
                 showGrid
                 animated
-                onStrokeAnimationComplete={() => setIsAnimating(false)}
+                onAnimatingChange={setIsAnimating}
+                onStrokeAnimationComplete={() => {}} 
               />
             </>
           ) : (
