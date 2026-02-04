@@ -34,9 +34,9 @@ interface ValidationConfig {
 }
 
 const DEFAULT_CONFIG: ValidationConfig = {
-  startTolerance: 0.25,
-  endTolerance: 0.35,
-  directionTolerance: 45,
+  startTolerance: 0.30,   // 30% of canvas — slightly more forgiving for finger input
+  endTolerance: 0.40,     // 40% — end position is less precise on touch
+  directionTolerance: 50,  // 50° — accommodate natural finger arc variation
   shapeTolerance: 0.35,
   minPointCount: 3,
 };
@@ -157,7 +157,7 @@ export function validateStroke(
     lengthScore * 0.15
   );
 
-  const isValid = startOk && directionOk && overallConfidence >= 0.5;
+  const isValid = startOk && directionOk && overallConfidence >= 0.4;
 
   return {
     isValid,
