@@ -2,12 +2,12 @@
  * DrawingCanvas Component
  * 
  * Touch-input drawing surface for stroke practice.
- * Captures finger movements and renders them as SVG polylines.
+ * Uses React Native's PanResponder (not RNGH) to avoid native gesture
+ * handler crashes on New Architecture + Reanimated setups.
  */
 
-import React, { useState, useCallback, useRef } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import React, { useState, useRef, useMemo } from 'react';
+import { View, StyleSheet, PanResponder, GestureResponderEvent } from 'react-native';
 import Svg, { Polyline, Path, Line } from 'react-native-svg';
 import { colors } from '../../constants/colors';
 
@@ -41,45 +41,66 @@ export function DrawingCanvas({
 }: DrawingCanvasProps) {
   const [activePoints, setActivePoints] = useState<Point[]>([]);
   
-  // Use refs to avoid stale closures in gesture callbacks.
-  // Gesture handlers capture callbacks at gesture start and don't update mid-gesture,
-  // so reading state directly in onUpdate/onEnd gives stale values.
+  // Refs to hold current values for PanResponder callbacks (created once via useMemo)
   const activePointsRef = useRef<Point[]>([]);
   const onStrokeCompleteRef = useRef(onStrokeComplete);
+  const disabledRef = useRef(disabled);
+  const sizeRef = useRef(size);
   onStrokeCompleteRef.current = onStrokeComplete;
+  disabledRef.current = disabled;
+  sizeRef.current = size;
 
-  const normalizePoint = useCallback((x: number, y: number): Point => {
+  const normalizePoint = (x: number, y: number): Point => {
+    const s = sizeRef.current;
     return {
-      x: Math.max(0, Math.min(1, x / size)),
-      y: Math.max(0, Math.min(1, y / size)),
+      x: Math.max(0, Math.min(1, x / s)),
+      y: Math.max(0, Math.min(1, y / s)),
     };
-  }, [size]);
+  };
 
-  const panGesture = Gesture.Pan()
-    .enabled(!disabled)
-    .onStart((event) => {
-      const point = normalizePoint(event.x, event.y);
-      activePointsRef.current = [point];
-      setActivePoints([point]);
-    })
-    .onUpdate((event) => {
-      const point = normalizePoint(event.x, event.y);
-      activePointsRef.current = [...activePointsRef.current, point];
-      setActivePoints([...activePointsRef.current]);
-    })
-    .onEnd(() => {
-      if (activePointsRef.current.length > 0) {
-        onStrokeCompleteRef.current(activePointsRef.current);
-      }
-      activePointsRef.current = [];
-      setActivePoints([]);
-    })
-    .onFinalize(() => {
-      activePointsRef.current = [];
-      setActivePoints([]);
-    })
-    .minDistance(0)
-    .shouldCancelWhenOutside(false);
+  const extractLocation = (e: GestureResponderEvent): { x: number; y: number } => {
+    return {
+      x: e.nativeEvent.locationX,
+      y: e.nativeEvent.locationY,
+    };
+  };
+
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => !disabledRef.current,
+        onMoveShouldSetPanResponder: () => !disabledRef.current,
+        onPanResponderTerminationRequest: () => false, // don't let ScrollView steal the gesture
+
+        onPanResponderGrant: (e) => {
+          const { x, y } = extractLocation(e);
+          const point = normalizePoint(x, y);
+          activePointsRef.current = [point];
+          setActivePoints([point]);
+        },
+
+        onPanResponderMove: (e) => {
+          const { x, y } = extractLocation(e);
+          const point = normalizePoint(x, y);
+          activePointsRef.current = [...activePointsRef.current, point];
+          setActivePoints([...activePointsRef.current]);
+        },
+
+        onPanResponderRelease: () => {
+          if (activePointsRef.current.length > 0) {
+            onStrokeCompleteRef.current(activePointsRef.current);
+          }
+          activePointsRef.current = [];
+          setActivePoints([]);
+        },
+
+        onPanResponderTerminate: () => {
+          activePointsRef.current = [];
+          setActivePoints([]);
+        },
+      }),
+    [] // stable — reads current values from refs
+  );
 
   const pointsToSvgString = (points: Point[]): string => {
     return points.map(p => `${p.x * size},${p.y * size}`).join(' ');
@@ -101,79 +122,80 @@ export function DrawingCanvas({
   };
 
   return (
-    <GestureDetector gesture={panGesture}>
-      <View style={[styles.container, { width: size, height: size }]}>
-        <Svg width={size} height={size}>
-          {showGrid && (
-            <>
-              <Line
-                x1={size / 2}
-                y1={0}
-                x2={size / 2}
-                y2={size}
-                stroke={colors.border}
-                strokeWidth={1}
-                strokeDasharray="5,5"
-              />
-              <Line
-                x1={0}
-                y1={size / 2}
-                x2={size}
-                y2={size / 2}
-                stroke={colors.border}
-                strokeWidth={1}
-                strokeDasharray="5,5"
-              />
-              <Line
-                x1={0}
-                y1={0}
-                x2={size}
-                y2={size}
-                stroke={colors.border}
-                strokeWidth={0.5}
-                strokeDasharray="5,5"
-                opacity={0.5}
-              />
-              <Line
-                x1={size}
-                y1={0}
-                x2={0}
-                y2={size}
-                stroke={colors.border}
-                strokeWidth={0.5}
-                strokeDasharray="5,5"
-                opacity={0.5}
-              />
-            </>
-          )}
-
-          {currentStrokes.map((stroke, index) => (
-            <Path
-              key={index}
-              d={pointsToPath(stroke.points)}
-              stroke={stroke.color}
-              strokeWidth={4}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              fill="none"
+    <View
+      style={[styles.container, { width: size, height: size }]}
+      {...panResponder.panHandlers}
+    >
+      <Svg width={size} height={size}>
+        {showGrid && (
+          <>
+            <Line
+              x1={size / 2}
+              y1={0}
+              x2={size / 2}
+              y2={size}
+              stroke={colors.border}
+              strokeWidth={1}
+              strokeDasharray="5,5"
             />
-          ))}
-
-          {activePoints.length > 0 && (
-            <Polyline
-              points={pointsToSvgString(activePoints)}
-              stroke={activeColor}
-              strokeWidth={4}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              fill="none"
+            <Line
+              x1={0}
+              y1={size / 2}
+              x2={size}
+              y2={size / 2}
+              stroke={colors.border}
+              strokeWidth={1}
+              strokeDasharray="5,5"
             />
-          )}
-        </Svg>
-        
-        {disabled && <View style={styles.disabledOverlay} />}
-      </View>
-    </GestureDetector>
+            <Line
+              x1={0}
+              y1={0}
+              x2={size}
+              y2={size}
+              stroke={colors.border}
+              strokeWidth={0.5}
+              strokeDasharray="5,5"
+              opacity={0.5}
+            />
+            <Line
+              x1={size}
+              y1={0}
+              x2={0}
+              y2={size}
+              stroke={colors.border}
+              strokeWidth={0.5}
+              strokeDasharray="5,5"
+              opacity={0.5}
+            />
+          </>
+        )}
+
+        {currentStrokes.map((stroke, index) => (
+          <Path
+            key={index}
+            d={pointsToPath(stroke.points)}
+            stroke={stroke.color}
+            strokeWidth={4}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          />
+        ))}
+
+        {activePoints.length > 0 && (
+          <Polyline
+            points={pointsToSvgString(activePoints)}
+            stroke={activeColor}
+            strokeWidth={4}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          />
+        )}
+      </Svg>
+      
+      {disabled && <View style={styles.disabledOverlay} />}
+    </View>
   );
 }
 
