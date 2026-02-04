@@ -3,12 +3,15 @@ import { View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-nati
 import BottomSheet, { BottomSheetView, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { useNavigation } from '@react-navigation/native';
 import { colors } from '../constants/colors';
 import { spacing, borderRadius } from '../constants/spacing';
 import { fontSizes, fontWeights } from '../constants/typography';
 import type { SegmentedWord } from '../services/segmentation';
 import type { DictionaryEntry } from '../services/dictionary';
 import { translationService } from '../services/translation';
+import { isPracticeable } from '../utils/characterType';
+import type { RootNavigationProp } from '../navigation/types';
 
 interface DetailPanelProps {
   word: SegmentedWord;
@@ -22,9 +25,28 @@ interface DetailPanelProps {
 
 export const DetailPanel = forwardRef<BottomSheet, DetailPanelProps>(
   ({ word, entry, isLoading, onClose, onPlayAudio, isPlayingAudio = false, sentenceContext }, ref) => {
+    const navigation = useNavigation<RootNavigationProp>();
     const snapPoints = useMemo(() => ['45%'], []);
     const [wordTranslation, setWordTranslation] = useState<string | null>(null);
     const [isTranslating, setIsTranslating] = useState(false);
+
+    const practiceableChars = useMemo(() => {
+      return [...word.text].filter(isPracticeable);
+    }, [word.text]);
+
+    const canPractice = practiceableChars.length > 0;
+
+    const handlePractice = useCallback(async () => {
+      if (!canPractice) return;
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      onClose();
+      navigation.navigate('WritingPractice', {
+        characters: practiceableChars,
+        reading: entry?.reading || word.reading || '',
+        meaning: entry?.meanings[0] || wordTranslation || '',
+        source: 'popup',
+      });
+    }, [canPractice, practiceableChars, entry, word.reading, wordTranslation, navigation, onClose]);
 
     // Fetch word-level translation as fallback when no dictionary entry
     useEffect(() => {
@@ -98,18 +120,30 @@ export const DetailPanel = forwardRef<BottomSheet, DetailPanelProps>(
                 </Text>
               )}
             </View>
-            <Pressable
-              onPress={handlePlayAudio}
-              style={[styles.audioButton, isPlayingAudio && styles.audioButtonActive]}
-              accessibilityRole="button"
-              accessibilityLabel={isPlayingAudio ? 'Stop pronunciation' : 'Play pronunciation'}
-            >
-              <Ionicons 
-                name={isPlayingAudio ? 'stop-circle' : 'volume-high'} 
-                size={28} 
-                color={colors.primary} 
-              />
-            </Pressable>
+            <View style={styles.headerActions}>
+              {canPractice && (
+                <Pressable
+                  onPress={handlePractice}
+                  style={styles.actionButton}
+                  accessibilityRole="button"
+                  accessibilityLabel="Practice writing this character"
+                >
+                  <Ionicons name="pencil" size={24} color={colors.primary} />
+                </Pressable>
+              )}
+              <Pressable
+                onPress={handlePlayAudio}
+                style={[styles.actionButton, isPlayingAudio && styles.audioButtonActive]}
+                accessibilityRole="button"
+                accessibilityLabel={isPlayingAudio ? 'Stop pronunciation' : 'Play pronunciation'}
+              >
+                <Ionicons 
+                  name={isPlayingAudio ? 'stop-circle' : 'volume-high'} 
+                  size={28} 
+                  color={colors.primary} 
+                />
+              </Pressable>
+            </View>
           </View>
 
           {isLoading ? (
@@ -218,6 +252,15 @@ const styles = StyleSheet.create({
   wordSection: {
     flex: 1,
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  actionButton: {
+    padding: spacing.sm,
+    borderRadius: borderRadius.md,
+  },
   word: {
     fontSize: fontSizes.japaneseLarge,
     fontWeight: fontWeights.bold,
@@ -227,11 +270,6 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.lg,
     color: colors.textSecondary,
     marginTop: spacing.xs,
-  },
-  audioButton: {
-    padding: spacing.sm,
-    marginLeft: spacing.md,
-    borderRadius: borderRadius.md,
   },
   audioButtonActive: {
     backgroundColor: colors.primaryLight + '30',

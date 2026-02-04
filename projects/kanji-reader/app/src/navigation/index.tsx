@@ -12,6 +12,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { RootStackParamList } from './types';
 import { MainTabs } from './MainTabs';
 import { ResultsScreen } from '../screens/ResultsScreen';
+import { WritingPracticeScreen } from '../screens/WritingPracticeScreen';
 import { colors } from '../constants/colors';
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -31,6 +32,16 @@ export function RootNavigator() {
           presentation: 'modal',
           headerShown: true,
           headerTitle: 'Results',
+          headerBackTitle: 'Back',
+          headerTintColor: colors.primary,
+        }}
+      />
+      <Stack.Screen
+        name="WritingPractice"
+        component={WritingPracticeScreen}
+        options={{
+          headerShown: true,
+          headerTitle: 'Writing Practice',
           headerBackTitle: 'Back',
           headerTintColor: colors.primary,
         }}
