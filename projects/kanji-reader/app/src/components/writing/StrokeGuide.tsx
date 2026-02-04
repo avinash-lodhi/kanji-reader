@@ -5,7 +5,7 @@
  * Core visual component for Learn Mode.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
 import Svg, { Path, Circle, Text as SvgText } from 'react-native-svg';
 import { StrokeData } from '../../services/strokeData';
@@ -21,6 +21,7 @@ interface StrokeGuideProps {
   animated?: boolean;
   animationDuration?: number;
   onStrokeAnimationComplete?: () => void;
+  onAnimatingChange?: (isAnimating: boolean) => void;
 }
 
 const VIEWBOX_SIZE = 109;
@@ -57,20 +58,47 @@ export function StrokeGuide({
   animated = false,
   animationDuration = 1500, // Slower default speed
   onStrokeAnimationComplete,
+  onAnimatingChange,
 }: StrokeGuideProps) {
   const { strokes } = strokeData;
   const [animatingStroke, setAnimatingStroke] = useState<number | null>(null);
   const [prevCurrentStroke, setPrevCurrentStroke] = useState(currentStroke);
+  const hasAnimatedFirst = useRef(false);
 
+  // Animate first stroke on mount when animated mode is active
+  useEffect(() => {
+    if (animated && !hasAnimatedFirst.current && currentStroke === 0 && strokes.length > 0) {
+      hasAnimatedFirst.current = true;
+      setAnimatingStroke(0);
+      onAnimatingChange?.(true);
+    }
+  }, [animated, strokes.length]); // Only on mount/animated change
+
+  // Animate subsequent strokes when currentStroke advances
   useEffect(() => {
     if (animated && currentStroke > prevCurrentStroke && currentStroke >= 0) {
       setAnimatingStroke(currentStroke);
+      onAnimatingChange?.(true);
     }
     setPrevCurrentStroke(currentStroke);
   }, [currentStroke, animated, prevCurrentStroke]);
 
+  // Reset the first-animation flag when reset (currentStroke goes back to 0)
+  useEffect(() => {
+    if (currentStroke === 0 && prevCurrentStroke > 0) {
+      hasAnimatedFirst.current = false;
+      // Trigger first stroke animation on reset too
+      if (animated && strokes.length > 0) {
+        hasAnimatedFirst.current = true;
+        setAnimatingStroke(0);
+        onAnimatingChange?.(true);
+      }
+    }
+  }, [currentStroke, prevCurrentStroke, animated, strokes.length]);
+
   const handleAnimationComplete = () => {
     setAnimatingStroke(null);
+    onAnimatingChange?.(false);
     onStrokeAnimationComplete?.();
   };
   
