@@ -43,25 +43,32 @@ export function WritingPracticeScreen() {
   const { characters, reading, meaning, source } = route.params;
   const { width } = useWindowDimensions();
 
+  const [activeCharIndex, setActiveCharIndex] = useState(0);
   const [activeMode, setActiveMode] = useState<Mode>('practice');
   const [strokeData, setStrokeData] = useState<StrokeData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   
-  const [learnCurrentStroke, setLearnCurrentStroke] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
-  
-  const [hintLevel, setHintLevel] = useState(0);
+  // Derived state
+  const character = characters[activeCharIndex];
+  const wordString = characters.join('');
+  const isFirstChar = activeCharIndex === 0;
+  const isLastChar = activeCharIndex === characters.length - 1;
 
-  const character = characters[0];
   const charType = getWritingCharacterType(character);
   const canvasSize = Math.min(width - spacing[8], 300);
 
   const practiceSession = usePracticeSession(strokeData, character);
   const addWord = usePracticeStore((state) => state.addWord);
-  const isInPracticeList = usePracticeStore((state) => 
-    state.words.some(w => w.word === character)
-  );
+  
+  // Auto-save on mount
+  useEffect(() => {
+    addWord({
+      word: wordString,
+      characters: characters,
+      reading,
+      meaning,
+      source: source === 'popup' ? 'scan' : 'manual',
+    });
+  }, [addWord, wordString, characters, reading, meaning, source]);
 
   useEffect(() => {
     async function loadStrokeData() {
@@ -102,18 +109,6 @@ export function WritingPracticeScreen() {
     handleModeChange('learn');
   }, [handleModeChange]);
 
-  const handleAddToPracticeList = useCallback(() => {
-    if (!isInPracticeList) {
-      addWord({
-        word: character,
-        characters: [character],
-        reading,
-        meaning,
-        source: source === 'popup' ? 'scan' : 'manual',
-      });
-    }
-  }, [character, reading, meaning, source, isInPracticeList, addWord]);
-
   const handleLearnPrevious = useCallback(() => {
     setLearnCurrentStroke((prev) => Math.max(0, prev - 1));
   }, []);
@@ -127,6 +122,20 @@ export function WritingPracticeScreen() {
   const handleLearnReset = useCallback(() => {
     setLearnCurrentStroke(0);
   }, []);
+
+  const handlePrevChar = useCallback(() => {
+    if (!isFirstChar) {
+      setActiveCharIndex(prev => prev - 1);
+      setHintLevel(0); // Reset hints on nav
+    }
+  }, [isFirstChar]);
+
+  const handleNextChar = useCallback(() => {
+    if (!isLastChar) {
+      setActiveCharIndex(prev => prev + 1);
+      setHintLevel(0); // Reset hints on nav
+    }
+  }, [isLastChar]);
 
   if (isLoading) {
     return (
@@ -157,9 +166,48 @@ export function WritingPracticeScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
-          <Text style={[styles.character, { color: getCharacterTypeColor(charType) }]}>
-            {character}
-          </Text>
+          <View style={styles.characterRow}>
+            {characters.length > 1 && (
+              <Pressable 
+                onPress={handlePrevChar} 
+                disabled={isFirstChar}
+                style={[styles.navArrow, isFirstChar && styles.navArrowDisabled]}
+                hitSlop={16}
+              >
+                <Ionicons 
+                  name="chevron-back" 
+                  size={32} 
+                  color={isFirstChar ? colors.border : colors.text} 
+                />
+              </Pressable>
+            )}
+
+            <Text style={[styles.character, { color: getCharacterTypeColor(charType) }]}>
+              {character}
+            </Text>
+
+            {characters.length > 1 && (
+              <Pressable 
+                onPress={handleNextChar} 
+                disabled={isLastChar}
+                style={[styles.navArrow, isLastChar && styles.navArrowDisabled]}
+                hitSlop={16}
+              >
+                <Ionicons 
+                  name="chevron-forward" 
+                  size={32} 
+                  color={isLastChar ? colors.border : colors.text} 
+                />
+              </Pressable>
+            )}
+          </View>
+
+          {characters.length > 1 && (
+            <Text style={styles.pagination}>
+              {activeCharIndex + 1} of {characters.length}
+            </Text>
+          )}
+
           <View style={styles.headerInfo}>
             {reading && <Text style={styles.reading}>{reading}</Text>}
             {meaning && <Text style={styles.meaning}>{meaning}</Text>}
@@ -290,21 +338,7 @@ export function WritingPracticeScreen() {
           </View>
         )}
 
-        <View style={styles.footer}>
-          {!isInPracticeList && (
-            <Pressable style={styles.addButton} onPress={handleAddToPracticeList}>
-              <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
-              <Text style={styles.addButtonText}>Add to Practice List</Text>
-            </Pressable>
-          )}
-          
-          {isInPracticeList && (
-            <View style={styles.inListBadge}>
-              <Ionicons name="checkmark-circle" size={16} color={colors.success} />
-              <Text style={styles.inListText}>In Practice List</Text>
-            </View>
-          )}
-        </View>
+        {/* Auto-saved to practice list */}
       </ScrollView>
     </GestureHandlerRootView>
   );
@@ -355,9 +389,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing[4],
   },
+  characterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing[4],
+  },
+  navArrow: {
+    padding: spacing[2],
+  },
+  navArrowDisabled: {
+    opacity: 0.3,
+  },
   character: {
     fontSize: 64,
     fontWeight: '300',
+  },
+  pagination: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginBottom: spacing[1],
   },
   headerInfo: {
     alignItems: 'center',
