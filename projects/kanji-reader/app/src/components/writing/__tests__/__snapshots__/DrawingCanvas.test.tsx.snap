@@ -1,0 +1,163 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DrawingCanvas renders correctly 1`] = `
+<View>
+  <View
+    gesture={{}}
+  >
+    <View
+      style={
+        [
+          {
+            "backgroundColor": "#FFFFFF",
+            "borderColor": "#E5E7EB",
+            "borderRadius": 8,
+            "borderWidth": 2,
+            "overflow": "hidden",
+          },
+          {
+            "height": 300,
+            "width": 300,
+          },
+        ]
+      }
+    >
+      <View
+        height={300}
+        testID="Svg"
+        width={300}
+      >
+        <View
+          stroke="#E5E7EB"
+          strokeDasharray="5,5"
+          strokeWidth={1}
+          testID="Line"
+          x1={150}
+          x2={150}
+          y1={0}
+          y2={300}
+        />
+        <View
+          stroke="#E5E7EB"
+          strokeDasharray="5,5"
+          strokeWidth={1}
+          testID="Line"
+          x1={0}
+          x2={300}
+          y1={150}
+          y2={150}
+        />
+        <View
+          opacity={0.5}
+          stroke="#E5E7EB"
+          strokeDasharray="5,5"
+          strokeWidth={0.5}
+          testID="Line"
+          x1={0}
+          x2={300}
+          y1={0}
+          y2={300}
+        />
+        <View
+          opacity={0.5}
+          stroke="#E5E7EB"
+          strokeDasharray="5,5"
+          strokeWidth={0.5}
+          testID="Line"
+          x1={300}
+          x2={0}
+          y1={0}
+          y2={300}
+        />
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DrawingCanvas renders disabled overlay when disabled is true 1`] = `
+<View>
+  <View
+    gesture={{}}
+  >
+    <View
+      style={
+        [
+          {
+            "backgroundColor": "#FFFFFF",
+            "borderColor": "#E5E7EB",
+            "borderRadius": 8,
+            "borderWidth": 2,
+            "overflow": "hidden",
+          },
+          {
+            "height": 300,
+            "width": 300,
+          },
+        ]
+      }
+    >
+      <View
+        height={300}
+        testID="Svg"
+        width={300}
+      >
+        <View
+          stroke="#E5E7EB"
+          strokeDasharray="5,5"
+          strokeWidth={1}
+          testID="Line"
+          x1={150}
+          x2={150}
+          y1={0}
+          y2={300}
+        />
+        <View
+          stroke="#E5E7EB"
+          strokeDasharray="5,5"
+          strokeWidth={1}
+          testID="Line"
+          x1={0}
+          x2={300}
+          y1={150}
+          y2={150}
+        />
+        <View
+          opacity={0.5}
+          stroke="#E5E7EB"
+          strokeDasharray="5,5"
+          strokeWidth={0.5}
+          testID="Line"
+          x1={0}
+          x2={300}
+          y1={0}
+          y2={300}
+        />
+        <View
+          opacity={0.5}
+          stroke="#E5E7EB"
+          strokeDasharray="5,5"
+          strokeWidth={0.5}
+          testID="Line"
+          x1={300}
+          x2={0}
+          y1={0}
+          y2={300}
+        />
+      </View>
+      <View
+        style={
+          {
+            "backgroundColor": "rgba(255, 255, 255, 0.5)",
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          }
+        }
+      />
+    </View>
+  </View>
+</View>
+`;
