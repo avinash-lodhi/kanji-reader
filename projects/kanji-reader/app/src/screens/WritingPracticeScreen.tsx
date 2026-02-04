@@ -46,6 +46,11 @@ export function WritingPracticeScreen() {
   const [activeCharIndex, setActiveCharIndex] = useState(0);
   const [activeMode, setActiveMode] = useState<Mode>('practice');
   const [strokeData, setStrokeData] = useState<StrokeData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [learnCurrentStroke, setLearnCurrentStroke] = useState(0);
+  const [hintLevel, setHintLevel] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
   
   // Derived state
   const character = characters[activeCharIndex];
