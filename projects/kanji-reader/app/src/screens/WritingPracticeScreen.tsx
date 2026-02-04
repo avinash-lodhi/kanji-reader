@@ -275,6 +275,7 @@ export function WritingPracticeScreen() {
                 strokeData={strokeData}
                 hintLevel={hintLevel}
                 size={canvasSize}
+                currentStrokeIndex={practiceSession.currentStrokeIndex}
                 onSwitchToLearn={handleSwitchToLearn}
               />
 
