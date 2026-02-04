@@ -51,6 +51,7 @@ export function WritingPracticeScreen() {
   const [learnCurrentStroke, setLearnCurrentStroke] = useState(0);
   const [hintLevel, setHintLevel] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isDrawing, setIsDrawing] = useState(false);
   
   // Derived state
   const character = characters[activeCharIndex];
@@ -169,6 +170,7 @@ export function WritingPracticeScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
+        scrollEnabled={!isDrawing}
       >
         <View style={styles.header}>
           <View style={styles.characterRow}>
@@ -267,6 +269,7 @@ export function WritingPracticeScreen() {
               <DrawingCanvas
                 size={canvasSize}
                 onStrokeComplete={practiceSession.handleStrokeComplete}
+                onDrawingStateChange={setIsDrawing}
                 currentStrokes={practiceSession.validatedStrokes}
                 disabled={practiceSession.isComplete || practiceSession.practiceState !== 'idle'}
                 showGrid
