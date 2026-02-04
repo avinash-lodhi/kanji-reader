@@ -13,6 +13,7 @@ import { CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/n
 export type MainTabsParamList = {
   Camera: undefined;
   Upload: undefined;
+  Practice: undefined;
 };
 
 // Root stack

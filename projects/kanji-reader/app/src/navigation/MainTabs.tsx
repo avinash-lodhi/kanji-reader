@@ -13,6 +13,7 @@ import { fontSizes } from '../constants/typography';
 
 import CameraScreen from '../screens/CameraScreen';
 import { ImageUploadScreen } from '../screens/ImageUploadScreen';
+import { PracticeListScreen } from '../screens/PracticeListScreen';
 
 const Tab = createBottomTabNavigator<MainTabsParamList>();
 
@@ -49,6 +50,16 @@ export function MainTabs() {
           tabBarLabel: 'Upload',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="image" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Practice"
+        component={PracticeListScreen}
+        options={{
+          tabBarLabel: 'Practice',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="pencil" size={size} color={color} />
           ),
         }}
       />
