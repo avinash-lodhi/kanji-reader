@@ -17,7 +17,7 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+// GestureHandlerRootView is already at the App root — do NOT nest it here
 import { RootStackParamList } from '../navigation/types';
 import { getStrokeData, StrokeData } from '../services/strokeData';
 import { StrokeGuide } from '../components/writing/StrokeGuide';
@@ -164,7 +164,7 @@ export function WritingPracticeScreen() {
   }
 
   return (
-    <GestureHandlerRootView style={styles.container}>
+    <View style={styles.container}>
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.content}
@@ -345,7 +345,7 @@ export function WritingPracticeScreen() {
 
         {/* Auto-saved to practice list */}
       </ScrollView>
-    </GestureHandlerRootView>
+    </View>
   );
 }
 

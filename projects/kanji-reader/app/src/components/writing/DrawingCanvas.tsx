@@ -5,7 +5,7 @@
  * Captures finger movements and renders them as SVG polylines.
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Svg, { Polyline, Path, Line } from 'react-native-svg';
@@ -40,7 +40,13 @@ export function DrawingCanvas({
   showGrid = true,
 }: DrawingCanvasProps) {
   const [activePoints, setActivePoints] = useState<Point[]>([]);
-  const [isDrawing, setIsDrawing] = useState(false);
+  
+  // Use refs to avoid stale closures in gesture callbacks.
+  // Gesture handlers capture callbacks at gesture start and don't update mid-gesture,
+  // so reading state directly in onUpdate/onEnd gives stale values.
+  const activePointsRef = useRef<Point[]>([]);
+  const onStrokeCompleteRef = useRef(onStrokeComplete);
+  onStrokeCompleteRef.current = onStrokeComplete;
 
   const normalizePoint = useCallback((x: number, y: number): Point => {
     return {
@@ -52,25 +58,25 @@ export function DrawingCanvas({
   const panGesture = Gesture.Pan()
     .enabled(!disabled)
     .onStart((event) => {
-      setIsDrawing(true);
       const point = normalizePoint(event.x, event.y);
+      activePointsRef.current = [point];
       setActivePoints([point]);
     })
     .onUpdate((event) => {
-      if (!isDrawing) return;
       const point = normalizePoint(event.x, event.y);
-      setActivePoints((prev) => [...prev, point]);
+      activePointsRef.current = [...activePointsRef.current, point];
+      setActivePoints([...activePointsRef.current]);
     })
     .onEnd(() => {
-      if (activePoints.length > 0) {
-        onStrokeComplete(activePoints);
+      if (activePointsRef.current.length > 0) {
+        onStrokeCompleteRef.current(activePointsRef.current);
       }
+      activePointsRef.current = [];
       setActivePoints([]);
-      setIsDrawing(false);
     })
     .onFinalize(() => {
+      activePointsRef.current = [];
       setActivePoints([]);
-      setIsDrawing(false);
     })
     .minDistance(0)
     .shouldCancelWhenOutside(false);
