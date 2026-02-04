@@ -11,6 +11,7 @@ import Animated, {
   useAnimatedProps,
   withTiming,
   Easing,
+  runOnJS,
 } from 'react-native-reanimated';
 import { Path } from 'react-native-svg';
 
@@ -26,8 +27,8 @@ interface AnimatedStrokeProps {
   onAnimationComplete?: () => void;
 }
 
-const DEFAULT_PATH_LENGTH = 300;
-const DEFAULT_DURATION = 500;
+const DEFAULT_PATH_LENGTH = 600; // Increased to cover longer strokes safely
+const DEFAULT_DURATION = 1500;   // Slower default speed
 
 export function AnimatedStroke({
   d,
@@ -48,13 +49,13 @@ export function AnimatedStroke({
         easing: Easing.inOut(Easing.ease),
       }, (finished) => {
         if (finished && onAnimationComplete) {
-          onAnimationComplete();
+          runOnJS(onAnimationComplete)();
         }
       });
     } else {
       strokeDashoffset.value = 0;
     }
-  }, [animate, pathLength, duration]);
+  }, [animate, pathLength, duration, onAnimationComplete]);
 
   const animatedProps = useAnimatedProps(() => ({
     strokeDashoffset: strokeDashoffset.value,
