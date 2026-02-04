@@ -55,7 +55,7 @@ export function StrokeGuide({
   size = 200,
   showGrid = false,
   animated = false,
-  animationDuration = 500,
+  animationDuration = 1500, // Slower default speed
   onStrokeAnimationComplete,
 }: StrokeGuideProps) {
   const { strokes } = strokeData;
