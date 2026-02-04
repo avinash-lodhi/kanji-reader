@@ -143,3 +143,39 @@ export function isJapanese(text: string): boolean {
   
   return totalCount > 0 && (japaneseCount / totalCount) > 0.5;
 }
+
+/**
+ * Writing practice character type - simplified for stroke data lookup
+ */
+export type WritingCharacterType = 'kanji' | 'hiragana' | 'katakana' | 'unknown';
+
+/**
+ * Get writing character type for stroke data service
+ * Used to determine which tier to look up stroke data from
+ */
+export function getWritingCharacterType(char: string): WritingCharacterType {
+  const type = detectCharacterType(char);
+  
+  if (type === 'hiragana') return 'hiragana';
+  if (type === 'katakana') return 'katakana';
+  if (type === 'kanji') return 'kanji';
+  
+  return 'unknown';
+}
+
+/**
+ * Check if a character can be practiced (has stroke data available)
+ */
+export function isPracticeable(char: string): boolean {
+  const type = getWritingCharacterType(char);
+  return type !== 'unknown';
+}
+
+/**
+ * Get the Unicode code point hex string for a character
+ * Used for stroke data lookup
+ */
+export function getCodePointHex(char: string): string {
+  if (!char || char.length === 0) return '';
+  return char.codePointAt(0)?.toString(16).padStart(5, '0') ?? '';
+}
