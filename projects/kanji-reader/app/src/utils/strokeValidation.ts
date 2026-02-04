@@ -55,18 +55,92 @@ function angleDifference(a1: number, a2: number): number {
   return diff;
 }
 
-function parseStrokeEndpoint(stroke: Stroke): Point {
-  const pathData = stroke.path;
+/**
+ * Trace an SVG path to find its endpoint.
+ * Handles both absolute (MCLSQTA) and relative (mclsqta) commands,
+ * which KanjiVG paths frequently mix.
+ */
+const VIEWBOX = 109;
+
+// SVG number regex: handles "1-0.61" → ["1", "-0.61"] and "1.88-1.67" → ["1.88", "-1.67"]
+const SVG_TOKEN_RE = /([a-zA-Z])|(-?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)/g;
+
+function tokenizeSVGPath(pathData: string): (string | number)[] {
+  const tokens: (string | number)[] = [];
+  let match: RegExpExecArray | null;
   
-  const matches = pathData.match(/-?[\d.]+/g);
-  if (!matches || matches.length < 2) {
-    return { x: stroke.startX, y: stroke.startY };
+  while ((match = SVG_TOKEN_RE.exec(pathData)) !== null) {
+    if (match[1]) {
+      tokens.push(match[1]); // command letter
+    } else if (match[2]) {
+      tokens.push(parseFloat(match[2])); // number
+    }
   }
   
-  const lastX = parseFloat(matches[matches.length - 2]) / 109;
-  const lastY = parseFloat(matches[matches.length - 1]) / 109;
-  
-  return { x: lastX, y: lastY };
+  return tokens;
+}
+
+function parseStrokeEndpoint(stroke: Stroke): Point {
+  const tokens = tokenizeSVGPath(stroke.path);
+
+  let x = 0, y = 0;       // current point
+  let startX = 0, startY = 0; // start of current subpath (for Z)
+  let i = 0;
+  let cmd = '';
+
+  const num = (): number => {
+    while (i < tokens.length && typeof tokens[i] === 'string') i++; // skip unexpected letters
+    return (i < tokens.length ? tokens[i++] : 0) as number;
+  };
+
+  while (i < tokens.length) {
+    const token = tokens[i];
+
+    // If it's a letter, it's a new command
+    if (typeof token === 'string') {
+      cmd = token;
+      i++;
+    }
+    // Otherwise, repeat the previous command (implicit lineto after M/m)
+
+    switch (cmd) {
+      case 'M': x = num(); y = num(); startX = x; startY = y; cmd = 'L'; break;
+      case 'm': x += num(); y += num(); startX = x; startY = y; cmd = 'l'; break;
+
+      case 'L': x = num(); y = num(); break;
+      case 'l': x += num(); y += num(); break;
+
+      case 'H': x = num(); break;
+      case 'h': x += num(); break;
+
+      case 'V': y = num(); break;
+      case 'v': y += num(); break;
+
+      case 'C': num(); num(); num(); num(); x = num(); y = num(); break;
+      case 'c': { num(); num(); num(); num(); const dx = num(), dy = num(); x += dx; y += dy; break; }
+
+      case 'S': num(); num(); x = num(); y = num(); break;
+      case 's': { num(); num(); const dx = num(), dy = num(); x += dx; y += dy; break; }
+
+      case 'Q': num(); num(); x = num(); y = num(); break;
+      case 'q': { num(); num(); const dx = num(), dy = num(); x += dx; y += dy; break; }
+
+      case 'T': x = num(); y = num(); break;
+      case 't': x += num(); y += num(); break;
+
+      case 'A': num(); num(); num(); num(); num(); x = num(); y = num(); break;
+      case 'a': { num(); num(); num(); num(); num(); const dx = num(), dy = num(); x += dx; y += dy; break; }
+
+      case 'Z': case 'z': x = startX; y = startY; break;
+
+      default:
+        // Unknown command — skip
+        i++;
+        break;
+    }
+  }
+
+  return { x: x / VIEWBOX, y: y / VIEWBOX };
 }
 
 function samplePoints(points: Point[], sampleCount: number): Point[] {
