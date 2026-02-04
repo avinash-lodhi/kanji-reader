@@ -58,10 +58,10 @@ export function WritingPracticeScreen() {
   const canvasSize = Math.min(width - spacing[8], 300);
 
   const practiceSession = usePracticeSession(strokeData, character);
-  const hasWord = usePracticeStore((state) => state.hasWord);
   const addWord = usePracticeStore((state) => state.addWord);
-
-  const isInPracticeList = hasWord(character);
+  const isInPracticeList = usePracticeStore((state) => 
+    state.words.some(w => w.word === character)
+  );
 
   useEffect(() => {
     async function loadStrokeData() {
