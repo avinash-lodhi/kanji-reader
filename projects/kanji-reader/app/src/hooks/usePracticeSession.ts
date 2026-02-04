@@ -5,7 +5,7 @@
  * Orchestrates drawing, validation, feedback, and state transitions.
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { StrokeData, Stroke } from '../services/strokeData';
 import { Point, validateStroke, StrokeValidationResult } from '../utils/strokeValidation';
 import { RenderedStroke } from '../components/writing/DrawingCanvas';
@@ -68,12 +68,33 @@ export function usePracticeSession(
 
   const isComplete = state.practiceState === 'complete';
 
+  // Refs to avoid stale closures in handleStrokeComplete
+  const stateRef = useRef(state);
+  stateRef.current = state;
+  const strokesRef = useRef(strokes);
+  strokesRef.current = strokes;
+  const totalStrokesRef = useRef(totalStrokes);
+  totalStrokesRef.current = totalStrokes;
+  const characterRef = useRef(character);
+  characterRef.current = character;
+  const updateProgressRef = useRef(updateProgress);
+  updateProgressRef.current = updateProgress;
+
   const handleStrokeComplete = useCallback((points: Point[]) => {
-    if (!expectedStroke || state.practiceState !== 'idle') return;
+    const currentState = stateRef.current;
+    const currentStrokes = strokesRef.current;
+    const currentTotalStrokes = totalStrokesRef.current;
+    
+    // Read the expected stroke directly from the ref'd strokes array
+    const currentExpectedStroke = currentState.currentStrokeIndex < currentStrokes.length 
+      ? currentStrokes[currentState.currentStrokeIndex] 
+      : null;
+
+    if (!currentExpectedStroke || currentState.practiceState !== 'idle') return;
 
     setState((prev) => ({ ...prev, practiceState: 'validating' }));
 
-    const result = validateStroke(points, expectedStroke);
+    const result = validateStroke(points, currentExpectedStroke);
     setLastValidationResult(result);
 
     if (result.isValid) {
@@ -85,8 +106,8 @@ export function usePracticeSession(
         isCorrect: true,
       };
 
-      const newIndex = state.currentStrokeIndex + 1;
-      const isNowComplete = newIndex >= totalStrokes;
+      const newIndex = currentState.currentStrokeIndex + 1;
+      const isNowComplete = newIndex >= currentTotalStrokes;
 
       setState((prev) => ({
         ...prev,
@@ -97,7 +118,7 @@ export function usePracticeSession(
       }));
 
       if (isNowComplete) {
-        updateProgress(character, true, state.hintsUsedThisSession);
+        updateProgressRef.current(characterRef.current, true, currentState.hintsUsedThisSession);
       }
 
       if (!isNowComplete) {
@@ -118,7 +139,7 @@ export function usePracticeSession(
         setState((prev) => ({ ...prev, practiceState: 'idle' }));
       }, 500);
     }
-  }, [expectedStroke, state.practiceState, state.currentStrokeIndex, state.hintsUsedThisSession, totalStrokes, character, updateProgress]);
+  }, []); // Stable callback — reads current values from refs
 
   const clearCanvas = useCallback(() => {
     setState({
