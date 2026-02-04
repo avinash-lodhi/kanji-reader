@@ -21,6 +21,13 @@ export type RootStackParamList = {
   Results: {
     imageUri: string;
   };
+  WritingPractice: {
+    characters: string[];
+    reading: string;
+    meaning: string;
+    source: 'popup' | 'practiceList';
+  };
+  PracticeList: undefined;
 };
 
 // Screen props types
