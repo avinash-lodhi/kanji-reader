@@ -25,6 +25,7 @@ export interface RenderedStroke {
 interface DrawingCanvasProps {
   size: number;
   onStrokeComplete: (points: Point[]) => void;
+  onDrawingStateChange?: (isDrawing: boolean) => void;
   currentStrokes?: RenderedStroke[];
   activeColor?: string;
   disabled?: boolean;
@@ -34,6 +35,7 @@ interface DrawingCanvasProps {
 export function DrawingCanvas({
   size,
   onStrokeComplete,
+  onDrawingStateChange,
   currentStrokes = [],
   activeColor = colors.primary,
   disabled = false,
@@ -46,7 +48,9 @@ export function DrawingCanvas({
   const onStrokeCompleteRef = useRef(onStrokeComplete);
   const disabledRef = useRef(disabled);
   const sizeRef = useRef(size);
+  const onDrawingStateChangeRef = useRef(onDrawingStateChange);
   onStrokeCompleteRef.current = onStrokeComplete;
+  onDrawingStateChangeRef.current = onDrawingStateChange;
   disabledRef.current = disabled;
   sizeRef.current = size;
 
@@ -80,6 +84,7 @@ export function DrawingCanvas({
           const point = normalizePoint(x, y);
           activePointsRef.current = [point];
           setActivePoints([point]);
+          onDrawingStateChangeRef.current?.(true);
         },
 
         onPanResponderMove: (e) => {
@@ -95,11 +100,13 @@ export function DrawingCanvas({
           }
           activePointsRef.current = [];
           setActivePoints([]);
+          onDrawingStateChangeRef.current?.(false);
         },
 
         onPanResponderTerminate: () => {
           activePointsRef.current = [];
           setActivePoints([]);
+          onDrawingStateChangeRef.current?.(false);
         },
       }),
     [] // stable — reads current values from refs
