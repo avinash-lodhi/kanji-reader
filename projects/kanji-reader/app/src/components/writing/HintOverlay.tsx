@@ -19,6 +19,7 @@ interface HintOverlayProps {
   strokeData: StrokeData;
   hintLevel: number;
   size: number;
+  currentStrokeIndex?: number;
   onSwitchToLearn?: () => void;
 }
 
@@ -26,19 +27,27 @@ export function HintOverlay({
   strokeData,
   hintLevel,
   size,
+  currentStrokeIndex = 0,
   onSwitchToLearn,
 }: HintOverlayProps) {
   if (hintLevel === 0) return null;
 
+  const currentStroke = currentStrokeIndex < strokeData.strokes.length
+    ? strokeData.strokes[currentStrokeIndex]
+    : null;
+
   return (
     <View style={[styles.container, { width: size, height: size }]} pointerEvents="box-none">
       {hintLevel >= 1 && (
-        <StrokeCountHint strokeCount={strokeData.strokeCount} />
+        <StrokeCountHint 
+          strokeCount={strokeData.strokeCount}
+          currentStrokeIndex={currentStrokeIndex}
+        />
       )}
       
-      {hintLevel >= 2 && strokeData.strokes.length > 0 && (
+      {hintLevel >= 2 && currentStroke && (
         <GhostStrokeHint 
-          stroke={strokeData.strokes[0]} 
+          stroke={currentStroke} 
           size={size}
         />
       )}
@@ -50,11 +59,11 @@ export function HintOverlay({
   );
 }
 
-function StrokeCountHint({ strokeCount }: { strokeCount: number }) {
+function StrokeCountHint({ strokeCount, currentStrokeIndex }: { strokeCount: number; currentStrokeIndex: number }) {
   return (
     <View style={styles.strokeCountContainer}>
       <Text style={styles.strokeCountText}>
-        {strokeCount} stroke{strokeCount !== 1 ? 's' : ''}
+        Stroke {currentStrokeIndex + 1} of {strokeCount}
       </Text>
     </View>
   );
