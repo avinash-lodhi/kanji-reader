@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, Image, Alert, ScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
 import { Button } from '../components/Button';
@@ -10,6 +11,7 @@ import type { RootNavigationProp } from '../navigation/types';
 
 export const ImageUploadScreen = () => {
   const navigation = useNavigation<RootNavigationProp>();
+  const insets = useSafeAreaInsets();
   const [image, setImage] = useState<string | null>(null);
 
   const pickImage = async () => {
@@ -37,7 +39,7 @@ export const ImageUploadScreen = () => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={[styles.container, { paddingTop: insets.top + spacing[4] }]}>
       <Text style={styles.title}>Upload Kanji Image</Text>
       <Text style={styles.subtitle}>
         Select an image from your gallery to scan for Kanji.

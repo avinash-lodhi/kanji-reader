@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View, Button, ActivityIndicator, useWindowDimensions } from 'react-native';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -13,6 +13,7 @@ const SCAN_FRAME_HEIGHT = 200;
 
 export default function CameraScreen() {
   const navigation = useNavigation<RootNavigationProp>();
+  const isFocused = useIsFocused();
   const cameraRef = useRef<CameraView>(null);
   const [facing, setFacing] = useState<CameraType>('back');
   const [permission, requestPermission] = useCameraPermissions();
@@ -84,7 +85,9 @@ export default function CameraScreen() {
 
   return (
     <View style={styles.container}>
-      <CameraView ref={cameraRef} style={styles.camera} facing={facing} />
+      {isFocused && (
+        <CameraView ref={cameraRef} style={styles.camera} facing={facing} />
+      )}
       
       <View style={styles.overlay}>
         <View style={styles.scanFrame} />

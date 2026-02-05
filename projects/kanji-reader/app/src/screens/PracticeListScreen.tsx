@@ -13,6 +13,7 @@ import {
   Pressable,
   ListRenderItem,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -24,6 +25,7 @@ import { getWritingCharacterType } from '../utils/characterType';
 
 export function PracticeListScreen() {
   const navigation = useNavigation<RootNavigationProp>();
+  const insets = useSafeAreaInsets();
   const words = usePracticeStore((state) => state.words);
   const characterProgress = usePracticeStore((state) => state.characterProgress);
   const removeWord = usePracticeStore((state) => state.removeWord);
@@ -131,7 +133,7 @@ export function PracticeListScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + spacing[3] }]}>
         <Text style={styles.headerTitle}>Practice List</Text>
         <Text style={styles.headerSubtitle}>
           {words.length} {words.length === 1 ? 'word' : 'words'}
