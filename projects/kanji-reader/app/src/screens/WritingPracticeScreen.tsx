@@ -133,15 +133,17 @@ export function WritingPracticeScreen() {
     if (!isFirstChar) {
       setActiveCharIndex(prev => prev - 1);
       setHintLevel(0); // Reset hints on nav
+      practiceSession.reset(); // Clear strokes from previous character
     }
-  }, [isFirstChar]);
+  }, [isFirstChar, practiceSession]);
 
   const handleNextChar = useCallback(() => {
     if (!isLastChar) {
       setActiveCharIndex(prev => prev + 1);
       setHintLevel(0); // Reset hints on nav
+      practiceSession.reset(); // Clear strokes from previous character
     }
-  }, [isLastChar]);
+  }, [isLastChar, practiceSession]);
 
   if (isLoading) {
     return (
@@ -309,7 +311,7 @@ export function WritingPracticeScreen() {
           <View style={styles.practiceControls}>
             <View style={styles.progressInfo}>
               <Text style={styles.progressText}>
-                Stroke {practiceSession.currentStrokeIndex + 1} of {strokeData.strokeCount}
+                Stroke {Math.min(practiceSession.currentStrokeIndex + 1, strokeData.strokeCount)} of {strokeData.strokeCount}
               </Text>
               {practiceSession.isComplete && (
                 <View style={styles.completeBadge}>
