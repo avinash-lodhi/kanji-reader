@@ -311,7 +311,7 @@ export function WritingPracticeScreen() {
           <View style={styles.practiceControls}>
             <View style={styles.progressInfo}>
               <Text style={styles.progressText}>
-                Stroke {Math.min(practiceSession.currentStrokeIndex + 1, strokeData.strokeCount)} of {strokeData.strokeCount}
+                Stroke {practiceSession.currentStrokeIndex} of {strokeData.strokeCount}
               </Text>
               {practiceSession.isComplete && (
                 <View style={styles.completeBadge}>
